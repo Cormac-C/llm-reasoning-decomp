@@ -1,5 +1,5 @@
-from peft import LoraConfig
-from transformers import Trainer
+from peft import LoraConfig, get_peft_model
+from transformers import Trainer, AutoModelForCausalLM as Model
 from datasets import Dataset
 
 # Default from: https://huggingface.co/blog/gemma-peft
@@ -20,7 +20,7 @@ default_lora_config = LoraConfig(
 
 # Train adapter function
 def train_lora(
-    base_model,
+    base_model: Model,
     train_dataset: Dataset,
     eval_dataset: Dataset,
     tokenizer,
@@ -29,10 +29,12 @@ def train_lora(
     training_args=None,
     save_dir=None,
 ):
-    base_model.add_adapter(lora_config, adapter_name)
+    peft_model = get_peft_model(
+        model=base_model, peft_config=lora_config, adapter_name=adapter_name
+    )
 
     trainer = Trainer(
-        model=base_model,
+        model=peft_model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
@@ -42,4 +44,4 @@ def train_lora(
     trainer.train()
 
     if save_dir:
-        base_model.save_pretrained(save_dir, adapter_name)
+        peft_model.save_pretrained(save_dir, adapter_name)
