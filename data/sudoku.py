@@ -19,8 +19,8 @@ class Sudoku(Dataset):
         clues = item["clues"]
         difficulty = item["difficulty"]
 
-        puzzle_tokens = self.tokenizer(puzzle, padding="max_length", max_length=self.max_len, truncation=True)
-        solution_tokens = self.tokenizer(solution, padding="max_length", max_length=self.max_len, truncation=True)
+        puzzle_tokens = self.tokenizer(puzzle, padding="max_length", max_length=self.max_len, truncation=True, return_tensors="pt")
+        solution_tokens = self.tokenizer(solution, padding="max_length", max_length=self.max_len, truncation=True, return_tensors="pt")
 
         clues_tensor = torch.tensor([int(i) for i in clues], dtype=torch.long).unsqueeze(0)
         difficulty_tensor = torch.tensor(difficulty, dtype=torch.float64).unsqueeze(0)
