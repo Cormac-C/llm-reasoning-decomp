@@ -1,6 +1,8 @@
 from peft import LoraConfig, get_peft_model
 from transformers import Trainer, AutoModelForCausalLM as Model
 from datasets import Dataset
+from trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
+
 
 # Default from: https://huggingface.co/blog/gemma-peft
 default_lora_config = LoraConfig(
@@ -39,6 +41,41 @@ def train_lora(
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         tokenizer=tokenizer,
+    )
+
+    trainer.train()
+
+    if save_dir:
+        peft_model.save_pretrained(save_dir, adapter_name)
+
+
+def sft_train_lora(
+    base_model: Model,
+    train_dataset: Dataset,
+    eval_dataset: Dataset,
+    tokenizer,
+    adapter_name: str,
+    formatting_prompts_func=None,
+    response_template="#Answer",
+    lora_config: LoraConfig = default_lora_config,
+    training_args=SFTConfig(output_dir="/tmp"),
+    save_dir="/tmp",
+):
+    peft_model = get_peft_model(
+        model=base_model, peft_config=lora_config, adapter_name=adapter_name
+    )
+
+    collator = DataCollatorForCompletionOnlyLM(
+        response_template=response_template, tokenizer=tokenizer
+    )
+
+    trainer = SFTTrainer(
+        model=peft_model,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        args=training_args,
+        formatting_func=formatting_prompts_func,
+        data_collator=collator,
     )
 
     trainer.train()
