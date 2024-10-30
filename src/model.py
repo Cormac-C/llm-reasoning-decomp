@@ -12,3 +12,5 @@ def identify_target_modules(
         if isinstance(module, module_types):
             if name_segment in name:
                 target_modules.append(name)
+
+    return target_modules
