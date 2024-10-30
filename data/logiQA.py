@@ -1,13 +1,11 @@
 from datasets import load_dataset
 import torch
 from torch.utils.data import Dataset
-from transformers import AutoTokenizer
 
 class LogiQA(Dataset):
-    def __init__(self, max_len=512):
+    def __init__(self, tokenizer):
         self.dataset = load_dataset("lucasmccabe/logiqa")
-        self.tokenizer = AutoTokenizer.from_pretrained("meta-llama/LLaMA-2-7b-hf")
-        self.max_len = max_len
+        self.tokenizer = tokenizer
 
     def __len__(self):
         return len(self.dataset)
@@ -20,14 +18,11 @@ class LogiQA(Dataset):
         answer = item["correct_option"]
 
         question_with_context_options = context + " " + query + " " + " ".join(options)
-        question_tokens = self.tokenizer(question_with_context_options, max_length=self.max_len, padding="max_length", truncation=True, return_tensors="pt")
+        input_text = f"{question_with_context_options} {answer}"
 
-
-        answer_tokens = self.tokenizer(answer, max_length=self.max_len, padding="max_length", truncation=True, return_tensors="pt")
-
+        tokens = self.tokenizer(input_text, padding="longest", return_tensors="pt")
 
         return {
-            "input_ids": question_tokens["input_ids"].squeeze(),
+            "input_ids": tokens["input_ids"].squeeze(),
             "attention_mask": question_tokens["attention_mask"].squeeze(),
-            "labels": answer_tokens["input_ids"].squeeze(),
         }

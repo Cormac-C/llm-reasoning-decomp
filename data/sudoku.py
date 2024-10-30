@@ -1,13 +1,11 @@
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
-from transformers import AutoTokenizer
 
 class Sudoku(Dataset):
-    def __init__(self, data_file, max_len=81):
+    def __init__(self, data_file, tokenizer):
         self.dataset = pd.read_csv(data_file)
-        self.tokenizer = AutoTokenizer.from_pretrained("meta-llama/LLaMA-2-7b-hf")
-        self.max_len = max_len
+        self.tokenizer = tokenizer
 
     def __len__(self):
         return len(self.dataset)
@@ -19,16 +17,17 @@ class Sudoku(Dataset):
         clues = item["clues"]
         difficulty = item["difficulty"]
 
-        puzzle_tokens = self.tokenizer(puzzle, padding="max_length", max_length=self.max_len, truncation=True, return_tensors="pt")
-        solution_tokens = self.tokenizer(solution, padding="max_length", max_length=self.max_len, truncation=True, return_tensors="pt")
+        question = f"Given a Sudoku puzzle, {puzzle}. Please solve for the final arrangement."
+
+        input_text = f"{question} {solution}"
+        tokens = self.tokenizer(input_text, padding="longest", return_tensors="pt")
 
         clues_tensor = torch.tensor([int(i) for i in clues], dtype=torch.long).unsqueeze(0)
         difficulty_tensor = torch.tensor(difficulty, dtype=torch.float64).unsqueeze(0)
 
         return {
-            "input_ids": puzzle_tokens["input_ids"].squeeze(),
+            "input_ids": tokens["input_ids"].squeeze(),
             "attention_mask": puzzle_tokens["attention_mask"].squeeze(),
-            "labels": solution_tokens["input_ids"].squeeze(),
             "clues": clues_tensor,
             "difficulty": difficulty_tensor
         }
