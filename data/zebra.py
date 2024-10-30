@@ -2,15 +2,11 @@ from datasets import load_dataset
 import torch
 from torch.utils.data import Dataset
 
-
 def verbalize_solution(solution):
-    # Start with an introductory sentence
     verbalized_solution = "The solution is as follows:\n"
     headers = solution["header"]
 
-    # Process each row and match with headers
     for row in solution["rows"]:
-        # Construct a sentence for each row
         row_description = f"In {headers[0].lower()} {row[0]}, "
         row_description += ", ".join(
             f"{headers[i].lower()} is {row[i]}" for i in range(1, len(headers))
@@ -19,7 +15,6 @@ def verbalize_solution(solution):
         verbalized_solution += row_description
 
     return verbalized_solution
-
 
 class Zebra(Dataset):
     def __init__(self, tokenizer):
@@ -35,14 +30,14 @@ class Zebra(Dataset):
         puzzle = item["puzzle"]
         solution = item["solution"]
 
-        question = f"Given a {puzzle_size} grid, {puzzle}. Please solve for the final arrangement."
+        # Format the question and verbalized answer
+        question = f"Given {puzzle}. Please solve for the final arrangement."
         verbalized_answer = verbalize_solution(solution)
 
-        input_text = f"{question} {verbalized_answer}"
-
+        input_text = f"{question} ### Answer: {verbalized_answer}"
         tokens = self.tokenizer(input_text, padding="longest", return_tensors="pt")
 
         return {
             "input_ids": tokens["input_ids"].squeeze(),
-            "attention_mask": question_tokens["attention_mask"].squeeze(),
+            "attention_mask": tokens["attention_mask"].squeeze(),
         }

@@ -17,12 +17,10 @@ class LogiQA(Dataset):
         options = item["options"]
         answer = item["correct_option"]
 
-        question_with_context_options = context + " " + query + " " + " ".join(options)
-        input_text = f"{question_with_context_options} {answer}"
-
-        tokens = self.tokenizer(input_text, padding="longest", return_tensors="pt")
+        question_with_context_options = f"{context} {query} {' '.join(options)} ### Answer: {answer}"
+        tokens = self.tokenizer(question_with_context_options, padding="longest", return_tensors="pt")
 
         return {
             "input_ids": tokens["input_ids"].squeeze(),
-            "attention_mask": question_tokens["attention_mask"].squeeze(),
+            "attention_mask": tokens["attention_mask"].squeeze(),
         }

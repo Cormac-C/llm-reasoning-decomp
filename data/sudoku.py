@@ -2,6 +2,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
+
 class Sudoku(Dataset):
     def __init__(self, data_file, tokenizer):
         self.dataset = pd.read_csv(data_file)
@@ -17,17 +18,16 @@ class Sudoku(Dataset):
         clues = item["clues"]
         difficulty = item["difficulty"]
 
-        question = f"Given a Sudoku puzzle, {puzzle}. Please solve for the final arrangement."
+        # Format the puzzle with the answer
+        question = f"Given the Sudoku puzzle {puzzle}, which has {clues} clues and a difficulty rating of {difficulty}. Please solve for the final arrangement."
+        input_text = f"{question} ### Answer: {solution}"
 
-        input_text = f"{question} {solution}"
         tokens = self.tokenizer(input_text, padding="longest", return_tensors="pt")
 
-        clues_tensor = torch.tensor([int(i) for i in clues], dtype=torch.long).unsqueeze(0)
-        difficulty_tensor = torch.tensor(difficulty, dtype=torch.float64).unsqueeze(0)
-
+        # Return input_ids, attention_mask, clues, and difficulty
         return {
             "input_ids": tokens["input_ids"].squeeze(),
-            "attention_mask": puzzle_tokens["attention_mask"].squeeze(),
-            "clues": clues_tensor,
-            "difficulty": difficulty_tensor
+            "attention_mask": tokens["attention_mask"].squeeze(),
+            "clues": torch.tensor(int(clues), dtype=torch.long),
+            "difficulty": torch.tensor(float(difficulty), dtype=torch.float32)
         }

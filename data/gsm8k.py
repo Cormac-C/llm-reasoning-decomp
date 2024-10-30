@@ -15,10 +15,10 @@ class GSM8K(Dataset):
         question = item["question"]
         answer = item["answer"]
 
-        input_text = f"{question} {answer}"
+        input_text = f"{question} ### Answer: {answer}"
         tokens = self.tokenizer(input_text, padding="longest", return_tensors="pt")
 
         return {
             "input_ids": tokens["input_ids"].squeeze(),
-            "attention_mask": question_tokens["attention_mask"].squeeze(),
+            "attention_mask": tokens["attention_mask"].squeeze(),
         }
