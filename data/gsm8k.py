@@ -3,9 +3,10 @@ import torch
 from torch.utils.data import Dataset
 
 class GSM8K(Dataset):
-    def __init__(self, tokenizer):
-        self.dataset = load_dataset("openai/gsm8k", "main")
+    def __init__(self, tokenizer, split="train"):
+        self.dataset = load_dataset("openai/gsm8k", "main", split=split)
         self.tokenizer = tokenizer
+        self.split = split
 
     def __len__(self):
         return len(self.dataset)

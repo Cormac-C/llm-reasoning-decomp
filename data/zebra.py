@@ -17,8 +17,8 @@ def verbalize_solution(solution):
     return verbalized_solution
 
 class Zebra(Dataset):
-    def __init__(self, tokenizer):
-        self.dataset = load_dataset("allenai/ZebraLogicBench-private", "grid_mode")
+    def __init__(self, tokenizer, hf_token, split='test'):
+        self.dataset = load_dataset("allenai/ZebraLogicBench-private", "grid_mode", token=hf_token, split=split)
         self.tokenizer = tokenizer
 
     def __len__(self):
