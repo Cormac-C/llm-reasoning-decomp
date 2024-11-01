@@ -22,12 +22,7 @@ class Sudoku(Dataset):
         question = f"Given the Sudoku puzzle {puzzle}, which has {clues} clues and a difficulty rating of {difficulty}. Please solve for the final arrangement."
         input_text = f"{question} ### Answer: {solution}"
 
-        tokens = self.tokenizer(input_text, padding="longest", return_tensors="pt")
-
         # Return input_ids, attention_mask, clues, and difficulty
         return {
-            "input_ids": tokens["input_ids"].squeeze(),
-            "attention_mask": tokens["attention_mask"].squeeze(),
-            "clues": torch.tensor(int(clues), dtype=torch.long),
-            "difficulty": torch.tensor(float(difficulty), dtype=torch.float32)
+            "input_text": input_text
         }

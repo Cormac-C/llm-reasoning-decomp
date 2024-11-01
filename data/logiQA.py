@@ -20,9 +20,7 @@ class LogiQA(Dataset):
         print(f"{context} {query} {' '.join(options)} ### Answer: {answer}")
 
         question_with_context_options = f"{context} {query} {' '.join(options)} ### Answer: {answer}"
-        tokens = self.tokenizer(question_with_context_options, padding="longest", return_tensors="pt")
 
         return {
-            "input_ids": tokens["input_ids"].squeeze(),
-            "attention_mask": tokens["attention_mask"].squeeze(),
+            "input_text": question_with_context_options
         }

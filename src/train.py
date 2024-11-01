@@ -69,6 +69,9 @@ def sft_train_lora(
         response_template=response_template, tokenizer=tokenizer
     )
 
+    train_dataset = train_dataset.map(lambda examples: tokenizer(examples["input_text"]), batched=True)
+    eval_dataset = eval_dataset.map(lambda examples: tokenizer(examples["input_text"]), batched=True)
+
     trainer = SFTTrainer(
         model=peft_model,
         train_dataset=train_dataset,

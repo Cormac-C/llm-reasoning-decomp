@@ -17,16 +17,14 @@ def verbalize_solution(solution):
     return verbalized_solution
 
 class Zebra(Dataset):
-    def __init__(self, tokenizer, hf_token, split='test'):
+    def __init__(self, hf_token, split='test'):
         self.dataset = load_dataset("allenai/ZebraLogicBench-private", "grid_mode", token=hf_token, split=split)
-        self.tokenizer = tokenizer
 
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, idx):
         item = self.dataset[idx]
-        puzzle_size = item["size"]
         puzzle = item["puzzle"]
         solution = item["solution"]
 
@@ -35,9 +33,7 @@ class Zebra(Dataset):
         verbalized_answer = verbalize_solution(solution)
 
         input_text = f"{question} ### Answer: {verbalized_answer}"
-        tokens = self.tokenizer(input_text, padding="longest", return_tensors="pt")
 
         return {
-            "input_ids": tokens["input_ids"].squeeze(),
-            "attention_mask": tokens["attention_mask"].squeeze(),
+            "input_text": input_text
         }
