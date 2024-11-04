@@ -5,12 +5,48 @@ import numpy as np
 import evaluate
 
 
+class ZebraPuzzleMetric(evaluate.Metric):
+    def __init__(self):
+        super().__init__()
+        self.strict_accuracy = 0.0
+        self.partial_accuracy = 0.0
+
+    def compute(self, predictions, references):
+        strict_correct = 0
+        partial_correct = 0
+        num_examples = len(predictions)
+        num_subparts = 0
+
+        for pred, ref in zip(predictions, references):
+            # TODO: Update split method
+            ref_parts = ref.split()
+            pred_parts = pred.split()
+
+            correct_subparts = 0
+            for ref_part in ref_parts:
+                if ref_part in pred_parts:
+                    correct_subparts += 1
+
+            # Update totals
+            num_subparts += len(ref_parts)
+            if correct_subparts == len(ref_parts):
+                strict_correct += 1
+            partial_correct += correct_subparts
+
+        self.strict_accuracy = strict_correct / num_examples
+        self.partial_accuracy = partial_correct / num_subparts
+        return {
+            "strict_accuracy": self.strict_accuracy,
+            "partial_accuracy": self.partial_accuracy,
+        }
+
+
 def compute_zebra_metrics(eval_preds):
     logits, labels = eval_preds
     predictions = np.argmax(logits, axis=-1)
     # Calculate the model accuracy
     # TODO: Update metrics to be puzzle specific
-    metric = evaluate.load("accuracy")
+    metric = ZebraPuzzleMetric()
     metric_output = metric.compute(predictions=predictions, references=labels)
     return metric_output
 
