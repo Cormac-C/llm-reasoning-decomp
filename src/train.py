@@ -20,6 +20,12 @@ default_lora_config = LoraConfig(
 )
 
 
+default_sft_config = SFTConfig(
+    output_dir="/tmp",
+    eval_strategy="epoch",
+)
+
+
 # Train adapter function
 def train_lora(
     base_model: Model,
@@ -58,7 +64,7 @@ def sft_train_lora(
     formatting_prompts_func=None,
     response_template="#Answer",
     lora_config: LoraConfig = default_lora_config,
-    training_args=SFTConfig(output_dir="/tmp"),
+    training_args=default_sft_config,
     save_dir="/tmp",
 ):
     peft_model = get_peft_model(
@@ -69,8 +75,12 @@ def sft_train_lora(
         response_template=response_template, tokenizer=tokenizer
     )
 
-    train_dataset = train_dataset.map(lambda examples: tokenizer(examples["input_text"]), batched=True)
-    eval_dataset = eval_dataset.map(lambda examples: tokenizer(examples["input_text"]), batched=True)
+    train_dataset = train_dataset.map(
+        lambda examples: tokenizer(examples["input_text"]), batched=True
+    )
+    eval_dataset = eval_dataset.map(
+        lambda examples: tokenizer(examples["input_text"]), batched=True
+    )
 
     trainer = SFTTrainer(
         model=peft_model,
