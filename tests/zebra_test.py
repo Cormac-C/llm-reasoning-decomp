@@ -7,7 +7,6 @@ import evaluate
 
 class ZebraPuzzleMetric(evaluate.Metric):
     def __init__(self):
-        super().__init__()
         self.strict_accuracy = 0.0
         self.partial_accuracy = 0.0
 
@@ -18,9 +17,14 @@ class ZebraPuzzleMetric(evaluate.Metric):
         num_subparts = 0
 
         for pred, ref in zip(predictions, references):
-            # TODO: Update split method
-            ref_parts = ref.split()
-            pred_parts = pred.split()
+            split_token = "\n"
+            ref_parts = ref.split(split_token)
+            pred_parts = pred.split(split_token)
+
+            # Ignore first part of answer which is intro
+            # TODO: Carfeul with this assumption
+            ref_parts = ref_parts[1:]
+            pred_parts = pred_parts[1:]
 
             correct_subparts = 0
             for ref_part in ref_parts:
@@ -44,8 +48,6 @@ class ZebraPuzzleMetric(evaluate.Metric):
 def compute_zebra_metrics(eval_preds):
     logits, labels = eval_preds
     predictions = np.argmax(logits, axis=-1)
-    # Calculate the model accuracy
-    # TODO: Update metrics to be puzzle specific
     metric = ZebraPuzzleMetric()
     metric_output = metric.compute(predictions=predictions, references=labels)
     return metric_output
