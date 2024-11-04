@@ -65,6 +65,7 @@ def sft_train_lora(
     response_template="#Answer",
     lora_config: LoraConfig = default_lora_config,
     training_args=default_sft_config,
+    compute_metrics=None,
     save_dir="/tmp",
 ):
     peft_model = get_peft_model(
@@ -89,6 +90,7 @@ def sft_train_lora(
         args=training_args,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
+        compute_metrics=compute_metrics,
     )
 
     trainer.train()
