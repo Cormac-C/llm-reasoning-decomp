@@ -3,6 +3,7 @@ from datasets import Dataset
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 import numpy as np
 import evaluate
+import re
 
 
 class ZebraPuzzleMetric(evaluate.Metric):
@@ -17,12 +18,12 @@ class ZebraPuzzleMetric(evaluate.Metric):
         num_subparts = 0
 
         for pred, ref in zip(predictions, references):
-            split_token = "\n"
-            ref_parts = ref.split(split_token)
-            pred_parts = pred.split(split_token)
+            split_token = "\n|, "
+            ref_parts = re.split(split_token, ref)
+            pred_parts = re.split(split_token, pred)
 
             # Ignore first part of answer which is intro
-            # TODO: Carfeul with this assumption
+            # TODO: Careful with this assumption
             ref_parts = ref_parts[1:]
             pred_parts = pred_parts[1:]
 
@@ -37,8 +38,8 @@ class ZebraPuzzleMetric(evaluate.Metric):
                 strict_correct += 1
             partial_correct += correct_subparts
 
-        self.strict_accuracy = strict_correct / num_examples
-        self.partial_accuracy = partial_correct / num_subparts
+        self.strict_accuracy = strict_correct / (num_examples or 1e-5)
+        self.partial_accuracy = partial_correct / (num_subparts or 1e-5)
         return {
             "strict_accuracy": self.strict_accuracy,
             "partial_accuracy": self.partial_accuracy,
