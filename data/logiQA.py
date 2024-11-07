@@ -1,6 +1,6 @@
 from datasets import load_dataset
-import torch
 from torch.utils.data import Dataset
+
 
 class LogiQA(Dataset):
     def __init__(self, tokenizer, split="train"):
@@ -19,8 +19,8 @@ class LogiQA(Dataset):
         answer = item["correct_option"]
         print(f"{context} {query} {' '.join(options)} ### Answer: {answer}")
 
-        question_with_context_options = f"{context} {query} {' '.join(options)} ### Answer: {answer}"
+        question_with_context_options = (
+            f"{context} {query} {' '.join(options)} ### Answer: {answer}"
+        )
 
-        return {
-            "input_text": question_with_context_options
-        }
+        return {"input_text": question_with_context_options}

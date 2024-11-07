@@ -1,6 +1,6 @@
 from datasets import load_dataset
-import torch
 from torch.utils.data import Dataset
+
 
 def verbalize_solution(solution):
     verbalized_solution = "The solution is as follows:\n"
@@ -16,9 +16,12 @@ def verbalize_solution(solution):
 
     return verbalized_solution
 
+
 class Zebra(Dataset):
-    def __init__(self, hf_token, split='test'):
-        self.dataset = load_dataset("allenai/ZebraLogicBench-private", "grid_mode", token=hf_token, split=split)
+    def __init__(self, hf_token, split="test"):
+        self.dataset = load_dataset(
+            "allenai/ZebraLogicBench-private", "grid_mode", token=hf_token, split=split
+        )
 
     def __len__(self):
         return len(self.dataset)
@@ -34,6 +37,4 @@ class Zebra(Dataset):
 
         input_text = f"{question} ### Answer: {verbalized_answer}"
 
-        return {
-            "input_text": input_text
-        }
+        return {"input_text": input_text}

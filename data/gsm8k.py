@@ -1,6 +1,6 @@
 from datasets import load_dataset
-import torch
 from torch.utils.data import Dataset
+
 
 class GSM8K(Dataset):
     def __init__(self, tokenizer, split="train"):
@@ -18,6 +18,4 @@ class GSM8K(Dataset):
 
         input_text = f"{question} ### Answer: {answer}"
 
-        return {
-            "input_text": input_text
-        }
+        return {"input_text": input_text}

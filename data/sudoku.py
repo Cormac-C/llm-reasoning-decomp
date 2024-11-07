@@ -1,5 +1,4 @@
 import pandas as pd
-import torch
 from torch.utils.data import Dataset
 
 
@@ -23,6 +22,4 @@ class Sudoku(Dataset):
         input_text = f"{question} ### Answer: {solution}"
 
         # Return input_ids, attention_mask, clues, and difficulty
-        return {
-            "input_text": input_text
-        }
+        return {"input_text": input_text}
