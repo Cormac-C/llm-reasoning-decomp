@@ -16,6 +16,4 @@ class GSM8K(Dataset):
         question = item["question"]
         answer = item["answer"]
 
-        input_text = f"{question} ### Answer: {answer}"
-
-        return {"input_text": input_text}
+        return {"question": question, "answer": answer}

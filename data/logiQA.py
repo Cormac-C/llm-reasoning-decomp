@@ -17,10 +17,9 @@ class LogiQA(Dataset):
         query = item["query"]
         options = item["options"]
         answer = item["correct_option"]
-        print(f"{context} {query} {' '.join(options)} ### Answer: {answer}")
 
         question_with_context_options = (
-            f"{context} {query} {' '.join(options)} ### Answer: {answer}"
+            f"{context} {query} {' '.join(options)}"
         )
 
-        return {"input_text": question_with_context_options}
+        return {"question": question_with_context_options, "answer": answer}

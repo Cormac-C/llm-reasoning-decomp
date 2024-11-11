@@ -35,6 +35,4 @@ class Zebra(Dataset):
         question = f"Given {puzzle}. Please solve for the final arrangement."
         verbalized_answer = verbalize_solution(solution)
 
-        input_text = f"{question} ### Answer: {verbalized_answer}"
-
-        return {"input_text": input_text}
+        return {"question": question, "answer": verbalized_answer}
