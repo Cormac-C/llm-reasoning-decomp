@@ -16,3 +16,37 @@ def lm_format_qa_instance(
     # Expects qa dictionary with "question" and "answer"
     formatted = f"{question_marker} {qa_instance['question']}\n{answer_marker} {qa_instance['answer']}"
     return formatted
+
+
+# Few-shot prompt constructor in text format
+def lm_create_fewshot_prompt(
+    query,
+    examples,
+    num_shots=5,
+    question_marker="### Question",
+    answer_marker="### Answer:",
+):
+    prompt = ""
+    for example in examples[:num_shots]:
+        prompt += lm_format_qa_instance(example, question_marker, answer_marker)
+
+    prompt += lm_format_qa_instance(
+        {"question": query, "answer": ""}, question_marker, answer_marker
+    )
+    return prompt
+
+
+# Few-shot prompt constructor in chat format
+def chat_create_fewshot_prompt(
+    query, examples, num_shots=5, assistant_role="assistant", user_role="user"
+):
+    prompt = []
+    for example in examples[:num_shots]:
+        prompt += chat_format_qa_instance(
+            example, assistant_role="assistant", user_role="user"
+        )
+
+    prompt += chat_format_qa_instance(
+        {"question": query, "answer": ""}, assistant_role="assistant", user_role="user"
+    )
+    return prompt
