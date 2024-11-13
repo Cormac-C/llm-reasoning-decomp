@@ -28,7 +28,9 @@ def lm_create_fewshot_prompt(
 ):
     prompt = ""
     for example in examples[:num_shots]:
-        prompt += lm_format_qa_instance(example, question_marker, answer_marker)
+        prompt += (
+            lm_format_qa_instance(example, question_marker, answer_marker) + "\n\n"
+        )
 
     prompt += lm_format_qa_instance(
         {"question": query, "answer": ""}, question_marker, answer_marker
@@ -43,10 +45,12 @@ def chat_create_fewshot_prompt(
     prompt = []
     for example in examples[:num_shots]:
         prompt += chat_format_qa_instance(
-            example, assistant_role="assistant", user_role="user"
+            example, assistant_role=assistant_role, user_role=user_role
         )
 
     prompt += chat_format_qa_instance(
-        {"question": query, "answer": ""}, assistant_role="assistant", user_role="user"
+        {"question": query, "answer": ""},
+        assistant_role=assistant_role,
+        user_role=user_role,
     )
     return prompt
