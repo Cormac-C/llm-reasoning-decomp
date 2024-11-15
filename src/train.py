@@ -64,7 +64,6 @@ def sft_train_lora(
     formatting_prompts_func=None,
     response_template="#Answer",
     lora_config: LoraConfig = default_lora_config,
-    use_chat_format=False,
     training_args=default_sft_config,
     compute_metrics=None,
     save_dir="/tmp",
@@ -77,29 +76,12 @@ def sft_train_lora(
         response_template=response_template, tokenizer=tokenizer
     )
 
-    if use_chat_format:
-        if not tokenizer.chat_template:
-            raise ValueError("Chat template is not set for the tokenizer")
-                                        
-        train_dataset = train_dataset.map(
-            lambda examples: tokenizer.apply_chat_template(
-                examples["formatted_text"], tokenize=True, add_generation_prompt=False
-            ),
-            batched=True,
-        )
-        eval_dataset = eval_dataset.map(
-            lambda examples: tokenizer.apply_chat_template(
-                examples["formatted_text"], tokenize=True, add_generation_prompt=False
-            ),
-            batched=True,
-        )
-    else:
-        train_dataset = train_dataset.map(
-            lambda examples: tokenizer(examples["formatted_text"]), batched=True
-        )
-        eval_dataset = eval_dataset.map(
-            lambda examples: tokenizer(examples["formatted_text"]), batched=True
-        )
+    train_dataset = train_dataset.map(
+        lambda examples: tokenizer(examples["formatted_text"]), batched=True
+    )
+    eval_dataset = eval_dataset.map(
+        lambda examples: tokenizer(examples["formatted_text"]), batched=True
+    )
 
     trainer = SFTTrainer(
         model=peft_model,
