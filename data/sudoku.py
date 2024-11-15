@@ -3,9 +3,8 @@ from torch.utils.data import Dataset
 
 
 class Sudoku(Dataset):
-    def __init__(self, data_file, tokenizer):
+    def __init__(self, data_file):
         self.dataset = pd.read_csv(data_file)
-        self.tokenizer = tokenizer
 
     def __len__(self):
         return len(self.dataset)
