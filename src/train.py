@@ -2,6 +2,7 @@ from peft import LoraConfig, get_peft_model
 from transformers import Trainer, AutoModelForCausalLM as Model
 from datasets import Dataset
 from trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
+import wandb
 
 
 # Default from: https://huggingface.co/blog/gemma-peft
@@ -21,8 +22,7 @@ default_lora_config = LoraConfig(
 
 
 default_sft_config = SFTConfig(
-    output_dir="/tmp",
-    eval_strategy="epoch",
+    output_dir="/tmp", eval_strategy="epoch", report_to="wandb"
 )
 
 
