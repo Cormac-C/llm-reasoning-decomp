@@ -23,7 +23,10 @@ default_lora_config = LoraConfig(
 
 
 default_sft_config = SFTConfig(
-    output_dir="/tmp", eval_strategy="epoch", report_to="wandb"
+    output_dir="/tmp",
+    # Eval_strategy set to "no" temporarily cause of https://github.com/huggingface/transformers/issues/34701
+    eval_strategy="no",
+    report_to="wandb",
 )
 
 
