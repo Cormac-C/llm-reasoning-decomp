@@ -1,7 +1,6 @@
 from transformers import AutoModelForCausalLM as Model
 from datasets import Dataset
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
-import numpy as np
 import evaluate
 import re
 
@@ -11,6 +10,34 @@ class ZebraPuzzleMetric(evaluate.Metric):
         self.strict_accuracy = 0.0
         self.partial_accuracy = 0.0
 
+    def _extract_and_split_parts(self, text):
+        answer_starts = [
+            "The solution is as follows:",
+            "The solution is:",
+            "Answer:",
+            "Solution:",
+            "Therefore,",
+        ]
+
+        # Find the beginning of the answer
+        for start in answer_starts:
+            if start.lower() in text.lower():
+                return text.split(start)[1]
+                break
+        # Split the answer into parts
+        split_regex = r"\n|,|\.|;"
+        parts = re.split(split_regex, text)
+        parts = [
+            part.strip()
+            for part in parts
+            if part.strip()
+            and part.strip().lower().startswith(("the", "here", "therefore"))
+        ]
+        return parts
+
+    def _normalize_string(self, text):
+        return re.sub(r"\s+", " ", text.lower().strip())
+
     def compute(self, predictions, references):
         strict_correct = 0
         partial_correct = 0
@@ -18,19 +45,22 @@ class ZebraPuzzleMetric(evaluate.Metric):
         num_subparts = 0
 
         for pred, ref in zip(predictions, references):
-            split_token = "\n|, "
-            ref_parts = re.split(split_token, ref)
-            pred_parts = re.split(split_token, pred)
+            ref_parts = self._extract_and_split_parts(ref)
+            pred_parts = self._extract_and_split_parts(pred)
 
             # Ignore first part of answer which is intro
             # TODO: Careful with this assumption
             ref_parts = ref_parts[1:]
             pred_parts = pred_parts[1:]
 
-            correct_subparts = 0
-            for ref_part in ref_parts:
-                if ref_part in pred_parts:
-                    correct_subparts += 1
+            correct_subparts = sum(
+                any(
+                    self._normalize_comparison(ref_part)
+                    == self._normalize_comparison(pred_part)
+                    for pred_part in pred_parts
+                )
+                for ref_part in ref_parts
+            )
 
             # Update totals
             num_subparts += len(ref_parts)
@@ -46,36 +76,31 @@ class ZebraPuzzleMetric(evaluate.Metric):
         }
 
 
-def compute_zebra_metrics(eval_preds):
-    logits, labels = eval_preds
-    predictions = np.argmax(logits, axis=-1)
+def compute_zebra_metrics(predictions, references):
     metric = ZebraPuzzleMetric()
-    metric_output = metric.compute(predictions=predictions, references=labels)
-    return metric_output
+    return metric.compute(predictions=predictions, references=references)
 
 
-def eval_baseline_zebra(
-    base_model: Model,
+def eval_zebra(
+    model: Model,
     eval_dataset: Dataset,
     tokenizer,
     formatting_prompts_func=None,
     response_template="#Answer",
     compute_metrics=compute_zebra_metrics,
 ):
-    base_model.eval()
+    model.eval()
 
     collator = DataCollatorForCompletionOnlyLM(
         response_template=response_template, tokenizer=tokenizer
     )
-    eval_dataset = eval_dataset.map(
-        lambda examples: tokenizer(examples["input_text"]), batched=True
-    )
+    eval_dataset = eval_dataset.map(tokenizer, batched=True)
     trainer = SFTTrainer(
-        model=base_model,
+        model=model,
         eval_dataset=eval_dataset,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
-        compute_metrics=compute_metrics,
+        compute_metrics=compute_zebra_metrics,
     )
     eval_metrics = trainer.evaluate()
 
