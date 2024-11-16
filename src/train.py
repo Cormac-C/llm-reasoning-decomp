@@ -86,7 +86,7 @@ def sft_train_lora(
 
     # Setup logging
     os.environ["WANDB_PROJECT"] = "Decomp"
-    os.environ["WANDB_LOG_MODEL"] = "true"
+    os.environ["WANDB_LOG_MODEL"] = "end"
     os.environ["WANDB_WATCH"] = "false"
 
     trainer = SFTTrainer(
