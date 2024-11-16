@@ -3,6 +3,7 @@ from transformers import Trainer, AutoModelForCausalLM as Model
 from datasets import Dataset
 from trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
 import wandb
+import os
 
 
 # Default from: https://huggingface.co/blog/gemma-peft
@@ -82,6 +83,11 @@ def sft_train_lora(
     eval_dataset = eval_dataset.map(
         lambda examples: tokenizer(examples[content_key]), batched=True
     )
+
+    # Setup logging
+    os.environ["WANDB_PROJECT"] = "Decomp"
+    os.environ["WANDB_LOG_MODEL"] = "true"
+    os.environ["WANDB_WATCH"] = "false"
 
     trainer = SFTTrainer(
         model=peft_model,
