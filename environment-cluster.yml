@@ -94,7 +94,7 @@ dependencies:
   - libexpat=2.6.3
   - libffi=3.4.2
   # - libgfortran=5.0.0
-  - libgfortran5=13.2.0
+  # - libgfortran5=13.2.0
   - libgoogle-cloud=2.30.0
   - libgoogle-cloud-storage=2.30.0
   - libgrpc=1.65.5
