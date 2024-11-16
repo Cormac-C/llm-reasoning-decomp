@@ -50,12 +50,13 @@ def train_zebra_baseline(
     test_split_size=0.2,
     save_dir="/tmp",
 ):
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name, token=os.environ["HF_TOKEN"]
-    )
     tokenizer = AutoTokenizer.from_pretrained(model_name, token=os.environ["HF_TOKEN"])
+    tokenizer.pad_token = tokenizer.eos_token
 
-    tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        token=os.environ["HF_TOKEN"],
+    )
 
     dataset = load_prep_zebra_dataset(
         tokenizer=tokenizer,
