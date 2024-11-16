@@ -8,7 +8,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import Dataset
 
 # Setup module path for local imports
-module_path = os.path.abspath(os.path.join(".."))
+module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
@@ -55,6 +55,8 @@ def train_zebra_baseline(
     )
     tokenizer = AutoTokenizer.from_pretrained(model_name, token=os.environ["HF_TOKEN"])
 
+    tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+
     dataset = load_prep_zebra_dataset(
         tokenizer=tokenizer,
         instruction_tuned=instruction_tuned,
@@ -75,10 +77,17 @@ def train_zebra_baseline(
         eval_dataset=dataset["test"],
         tokenizer=tokenizer,
         adapter_name="sft_lora",
-        response_template="### Answer:",
+        response_template="<|start_header_id|>assistant<|end_header_id|>",
         lora_config=lora_config,
-        compute_metrics=compute_zebra_metrics,
         save_dir=save_dir,
     )
 
     pass
+
+
+train_zebra_baseline(
+    instruction_tuned=True,
+    model_name="meta-llama/Llama-3.2-1B-Instruct",
+    test_split_size=0.2,
+    save_dir="/tmp",
+)
