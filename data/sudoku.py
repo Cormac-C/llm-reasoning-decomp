@@ -19,5 +19,5 @@ class Sudoku(Dataset):
         # Format the puzzle with the answer
         question = f"Given the Sudoku puzzle {puzzle}, which has {clues} clues and a difficulty rating of {difficulty}. Please solve for the final arrangement."
 
-        # Return input_ids, attention_mask, clues, and difficulty
+        # Return dictionary with question and solution
         return {"question": question, "answer": solution}
