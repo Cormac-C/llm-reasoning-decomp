@@ -1,6 +1,7 @@
 import os
 import sys
 import torch
+import wandb
 
 from peft import LoraConfig
 from dotenv import load_dotenv
@@ -15,10 +16,9 @@ if module_path not in sys.path:
 from src.train import sft_train_lora
 from src.model import identify_target_modules
 from data.sudoku import Sudoku
-from evals.sudoku_eval import compute_sudoku_metrics
 from data.format import chat_format_qa_instance, lm_format_qa_instance
 
-# Load environment variables 
+# Load environment variables
 load_dotenv()
 
 # Configure device
@@ -28,10 +28,12 @@ device = (
     else "mps" if torch.backend.mps.is_available() else "cpu"
 )
 
+wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
+
 
 def load_prep_sudoku_dataset(tokenizer, instruction_tuned=True, test_split_size=0.2):
     dataset = Sudoku(data_file=os.environ["SUDOKU_PATH"])
-    
+
     if instruction_tuned:
         formatted_list = [chat_format_qa_instance(example) for example in dataset]
         formatted_list = tokenizer.apply_chat_template(
@@ -49,17 +51,16 @@ def load_prep_sudoku_dataset(tokenizer, instruction_tuned=True, test_split_size=
 
 
 def train_sudoku_baseline(
-        instruction_tuned=True,
-        model_name="meta-llama/Llama-3.2-1B-Instruct",
-        test_split_size=0.2,
-        save_dir="/tmp",
+    instruction_tuned=True,
+    model_name="meta-llama/Llama-3.2-1B-Instruct",
+    test_split_size=0.2,
+    save_dir="/tmp",
 ):
     tokenizer = AutoTokenizer.from_pretrained(model_name, token=os.environ["HF_TOKEN"])
     tokenizer.pad_token = tokenizer.eos_token
 
     model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        token=os.environ["HF_TOKEN"]
+        model_name, token=os.environ["HF_TOKEN"]
     )
 
     dataset = load_prep_sudoku_dataset(
@@ -84,7 +85,7 @@ def train_sudoku_baseline(
         adapter_name="llama-1b-instruct-sudoku",
         response_template="<|start_header_id|>assistant<|end_header_id|>",
         lora_config=lora_config,
-        save_dir=save_dir
+        save_dir=save_dir,
     )
 
     pass

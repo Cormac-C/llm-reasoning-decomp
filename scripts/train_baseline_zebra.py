@@ -1,6 +1,7 @@
 import os
 import sys
 import torch
+import wandb
 
 from peft import LoraConfig
 from dotenv import load_dotenv
@@ -15,7 +16,6 @@ if module_path not in sys.path:
 from src.train import sft_train_lora
 from src.model import identify_target_modules
 from data.zebra import Zebra
-from evals.zebra_eval import compute_zebra_metrics
 from data.format import chat_format_qa_instance, lm_format_qa_instance
 
 # Load environment variables
@@ -27,6 +27,8 @@ device = (
     if torch.cuda.is_available()
     else "mps" if torch.backends.mps.is_available() else "cpu"
 )
+
+wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
 
 def load_prep_zebra_dataset(tokenizer, instruction_tuned=True, test_split_size=0.2):
