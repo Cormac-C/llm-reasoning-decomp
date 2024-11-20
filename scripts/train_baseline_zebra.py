@@ -37,8 +37,10 @@ def get_sft_config(run_name=None):
     return SFTConfig(
         output_dir="/tmp",
         run_name=run_name,
-        eval_strategy="epoch",
+        # Eval_strategy set to "no" temporarily cause of https://github.com/huggingface/transformers/issues/34701
+        eval_strategy="no",
         report_to="wandb",
+        logging_steps=10,
     )
 
 
