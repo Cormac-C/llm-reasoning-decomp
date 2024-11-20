@@ -11,32 +11,71 @@ class ZebraPuzzleMetric(evaluate.Metric):
         self.partial_accuracy = 0.0
 
     def _extract_and_split_parts(self, text):
+        # Each part should correspond to one house in the zebra puzzle
         answer_starts = [
             "The solution is as follows:",
             "The solution is:",
             "Answer:",
             "Solution:",
             "Therefore,",
+            "as follows:",
         ]
+        answer_starts_re = re.compile(
+            "|".join(re.escape(start) for start in answer_starts),
+            flags=re.IGNORECASE,
+        )
 
-        # Find the beginning of the answer
-        for start in answer_starts:
-            if start.lower() in text.lower():
-                return text.split(start)[1]
-                break
-        # Split the answer into parts
-        split_regex = r"\n|,|\.|;"
+        match = answer_starts_re.search(text)
+        if match:
+            text = text[match.end() :]
+
+        # Split the answer into parts (should correspond to the number of sentences)
+        split_regex = r"\n|\.|•|;"
         parts = re.split(split_regex, text)
-        parts = [
-            part.strip()
-            for part in parts
-            if part.strip()
-            and part.strip().lower().startswith(("the", "here", "therefore"))
-        ]
+        parts = [part.strip() for part in parts if part.strip()]
         return parts
 
     def _normalize_string(self, text):
         return re.sub(r"\s+", " ", text.lower().strip())
+
+    def _extract_house_number(self, text):
+        house_pattern = re.compile(r"House (\d+)", re.IGNORECASE)
+        house_num = house_pattern.search(text)
+        house_num = int(house_num.group(1)) if house_num else None
+        return house_num
+
+    def _match_parts(self, ref_parts, pred_parts):
+        # Match each part of the reference with a part of the prediction based on house number
+        part_pairs = {}
+        for ref_part in ref_parts:
+            # Find house number in reference part
+            house_num = self._extract_house_number(ref_part)
+            if house_num is None:
+                continue
+            else:
+                part_pairs[house_num] = {"ref": ref_part, "pred": None}
+        for pred_part in pred_parts:
+            # Find house number in prediction part
+            house_num = self._extract_house_number(pred_part)
+            if house_num is None:
+                continue
+            else:
+                if house_num in part_pairs:
+                    part_pairs[house_num]["pred"] = pred_part
+        return part_pairs
+
+    def _grade_part_pair(self, ref_parts, pred_parts):
+        num_correct = 0
+        ref_parts_split = ref_parts.split(",")
+        ref_parts_split = ref_parts_split[1:]  # Skip the house number
+        pred_parts_split = pred_parts.split(",")
+        for ref_part in ref_parts_split:
+            detail = ref_part.split("is ")[1]
+            for pred_part in pred_parts_split:
+                if detail in pred_part:
+                    num_correct += 1
+                    break
+        return num_correct, len(ref_parts_split)
 
     def compute(self, predictions, references):
         strict_correct = 0
@@ -45,28 +84,29 @@ class ZebraPuzzleMetric(evaluate.Metric):
         num_subparts = 0
 
         for pred, ref in zip(predictions, references):
+            iter_subparts = 0
+            iter_partial_correct = 0
+
             ref_parts = self._extract_and_split_parts(ref)
             pred_parts = self._extract_and_split_parts(pred)
 
-            # Ignore first part of answer which is intro
-            # TODO: Careful with this assumption
-            ref_parts = ref_parts[1:]
-            pred_parts = pred_parts[1:]
+            # Match each part of the reference with a part of the prediction based on house number
+            part_pairs = self._match_parts(ref_parts, pred_parts)
 
-            correct_subparts = sum(
-                any(
-                    self._normalize_comparison(ref_part)
-                    == self._normalize_comparison(pred_part)
-                    for pred_part in pred_parts
+            for house_num, parts in part_pairs.items():
+                ref_parts = parts["ref"]
+                pred_parts = parts["pred"]
+                correct_subparts, total_subparts = self._grade_part_pair(
+                    ref_parts, pred_parts
                 )
-                for ref_part in ref_parts
-            )
+                iter_partial_correct += correct_subparts
+                iter_subparts += total_subparts
 
             # Update totals
-            num_subparts += len(ref_parts)
-            if correct_subparts == len(ref_parts):
+            num_subparts += iter_subparts
+            if iter_subparts == iter_partial_correct:
                 strict_correct += 1
-            partial_correct += correct_subparts
+            partial_correct += iter_partial_correct
 
         self.strict_accuracy = strict_correct / (num_examples or 1e-5)
         self.partial_accuracy = partial_correct / (num_subparts or 1e-5)
@@ -100,7 +140,7 @@ def eval_zebra(
         eval_dataset=eval_dataset,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
-        compute_metrics=compute_zebra_metrics,
+        compute_metrics=compute_metrics,
     )
     eval_metrics = trainer.evaluate()
 
