@@ -82,7 +82,7 @@ def train_zebra_baseline(
             train_dataset=dataset["train"],
             eval_dataset=dataset["test"],
             tokenizer=tokenizer,
-            adapter_name="llama-1b-instruct-zebra",
+            adapter_name="llama-3b-instruct-zebra",
             response_template="<|start_header_id|>assistant<|end_header_id|>",
             lora_config=lora_config,
             save_dir=save_dir,
@@ -95,7 +95,7 @@ tokenizer, trained_model, dataset = train_zebra_baseline(
     instruction_tuned=True,
     model_name="meta-llama/Llama-3.2-3B-Instruct",
     test_split_size=0.2,
-    save_dir="/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files",
+    save_dir="/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-3b",
 )
 
 # Evaluate the trained model
