@@ -93,7 +93,7 @@ def train_zebra_baseline(
 
 tokenizer, trained_model, dataset = train_zebra_baseline(
     instruction_tuned=True,
-    model_name="meta-llama/Llama-3.2-1B-Instruct",
+    model_name="meta-llama/Llama-3.2-3B-Instruct",
     test_split_size=0.2,
     save_dir="/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files",
 )
