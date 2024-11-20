@@ -121,12 +121,12 @@ def compute_zebra_metrics(predictions, references):
     return metric.compute(predictions=predictions, references=references)
 
 
-def eval_zebra(
+def eval_model_zebra(
     model: Model,
     eval_dataset: Dataset,
     tokenizer,
     formatting_prompts_func=None,
-    response_template="#Answer",
+    response_template="<|start_header_id|>assistant<|end_header_id|>",
     compute_metrics=compute_zebra_metrics,
 ):
     model.eval()
@@ -134,7 +134,6 @@ def eval_zebra(
     collator = DataCollatorForCompletionOnlyLM(
         response_template=response_template, tokenizer=tokenizer
     )
-    eval_dataset = eval_dataset.map(tokenizer, batched=True)
     trainer = SFTTrainer(
         model=model,
         eval_dataset=eval_dataset,
@@ -143,5 +142,4 @@ def eval_zebra(
         compute_metrics=compute_metrics,
     )
     eval_metrics = trainer.evaluate()
-
     return eval_metrics

@@ -105,3 +105,5 @@ def sft_train_lora(
 
     if save_dir:
         peft_model.save_pretrained(save_dir, adapter_name)
+
+    return peft_model
