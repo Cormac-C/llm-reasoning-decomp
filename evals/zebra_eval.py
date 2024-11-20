@@ -128,12 +128,18 @@ def eval_model_zebra(
     formatting_prompts_func=None,
     response_template="<|start_header_id|>assistant<|end_header_id|>",
     compute_metrics=compute_zebra_metrics,
+    content_key="formatted_text",
 ):
     model.eval()
 
     collator = DataCollatorForCompletionOnlyLM(
         response_template=response_template, tokenizer=tokenizer
     )
+
+    eval_dataset = eval_dataset.map(
+        lambda examples: tokenizer(examples[content_key]), batched=True
+    )
+
     trainer = SFTTrainer(
         model=model,
         eval_dataset=eval_dataset,

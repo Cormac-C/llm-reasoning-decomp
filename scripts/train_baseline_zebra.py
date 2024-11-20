@@ -7,6 +7,7 @@ from peft import LoraConfig
 from dotenv import load_dotenv
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import Dataset
+from trl import SFTConfig
 
 # Setup module path for local imports
 module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -30,6 +31,15 @@ device = (
 )
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
+
+
+def get_sft_config(run_name=None):
+    return SFTConfig(
+        output_dir="/tmp",
+        run_name=run_name,
+        eval_strategy="epoch",
+        report_to="wandb",
+    )
 
 
 def load_prep_zebra_dataset(tokenizer, instruction_tuned=True, test_split_size=0.2):
@@ -75,6 +85,8 @@ def train_zebra_baseline(
         bias="none",
     )
 
+    training_config = get_sft_config(run_name="zebra-1b")
+
     return (
         tokenizer,
         sft_train_lora(
@@ -85,6 +97,7 @@ def train_zebra_baseline(
             adapter_name="llama-1b-instruct-zebra",
             response_template="<|start_header_id|>assistant<|end_header_id|>",
             lora_config=lora_config,
+            training_args=training_config,
             save_dir=save_dir,
         ),
         dataset,
