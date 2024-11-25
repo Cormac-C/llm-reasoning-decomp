@@ -18,7 +18,6 @@ from src.train import sft_train_lora
 from src.model import identify_target_modules
 from data.zebra import Zebra
 from data.format import chat_format_qa_instance, lm_format_qa_instance
-from evals.zebra_eval import eval_model_zebra
 
 # Load environment variables
 load_dotenv()
@@ -32,6 +31,12 @@ device = (
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
+RUN_NAME = "zebra-1b"
+
+BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
+
+MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
+
 
 def get_sft_config(run_name=None):
     return SFTConfig(
@@ -40,7 +45,7 @@ def get_sft_config(run_name=None):
         # Eval_strategy set to "no" temporarily cause of https://github.com/huggingface/transformers/issues/34701
         eval_strategy="no",
         report_to="wandb",
-        logging_steps=10,
+        logging_steps=50,
     )
 
 
@@ -64,6 +69,7 @@ def train_zebra_baseline(
     model_name="meta-llama/Llama-3.2-1B-Instruct",
     test_split_size=0.2,
     save_dir="/tmp",
+    run_name=None,
 ):
     tokenizer = AutoTokenizer.from_pretrained(model_name, token=os.environ["HF_TOKEN"])
     tokenizer.pad_token = tokenizer.eos_token
@@ -87,7 +93,9 @@ def train_zebra_baseline(
         bias="none",
     )
 
-    training_config = get_sft_config(run_name="zebra-1b")
+    training_config = get_sft_config(run_name=run_name)
+
+    adapter_name = "llama-instruct" + run_name
 
     return (
         tokenizer,
@@ -96,7 +104,7 @@ def train_zebra_baseline(
             train_dataset=dataset["train"],
             eval_dataset=dataset["test"],
             tokenizer=tokenizer,
-            adapter_name="llama-1b-instruct-zebra",
+            adapter_name=adapter_name,
             response_template="<|start_header_id|>assistant<|end_header_id|>",
             lora_config=lora_config,
             training_args=training_config,
@@ -106,18 +114,12 @@ def train_zebra_baseline(
     )
 
 
+save_dir = BASE_DIR + RUN_NAME
+
 tokenizer, trained_model, dataset = train_zebra_baseline(
     instruction_tuned=True,
-    model_name="meta-llama/Llama-3.2-1B-Instruct",
+    model_name=MODEL_NAME,
     test_split_size=0.2,
-    save_dir="/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-1b",
+    save_dir=save_dir,
+    run_name=RUN_NAME,
 )
-
-# Evaluate the trained model
-metrics = eval_model_zebra(
-    model=trained_model,
-    eval_dataset=dataset["test"],
-    tokenizer=tokenizer,
-)
-
-wandb.log(metrics)
