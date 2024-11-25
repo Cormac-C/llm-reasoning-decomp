@@ -1,6 +1,6 @@
 from transformers import AutoModelForCausalLM as Model
 from datasets import Dataset
-from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
+from trl import DataCollatorForCompletionOnlyLM, SFTTrainer, SFTConfig
 import evaluate
 import re
 
@@ -140,12 +140,15 @@ def eval_model_zebra(
         lambda examples: tokenizer(examples[content_key]), batched=True
     )
 
+    training_args = SFTConfig(eval_accumulation_steps=20, report_to="wandb")
+
     trainer = SFTTrainer(
         model=model,
         eval_dataset=eval_dataset,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
         compute_metrics=compute_metrics,
+        args=training_args,
     )
     eval_metrics = trainer.evaluate()
     return eval_metrics

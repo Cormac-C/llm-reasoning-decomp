@@ -18,6 +18,7 @@ from src.train import sft_train_lora
 from src.model import identify_target_modules
 from data.zebra import Zebra
 from data.format import chat_format_qa_instance, lm_format_qa_instance
+from evals.zebra_eval import eval_model_zebra
 
 # Load environment variables
 load_dotenv()
@@ -123,3 +124,11 @@ tokenizer, trained_model, dataset = train_zebra_baseline(
     save_dir=save_dir,
     run_name=RUN_NAME,
 )
+
+# Evaluate the trained model
+metrics = eval_model_zebra(
+    model=trained_model,
+    eval_dataset=dataset["test"],
+    tokenizer=tokenizer,
+)
+wandb.log(metrics)
