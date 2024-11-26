@@ -136,5 +136,6 @@ metrics = eval_model_zebra(
     model=trained_model,
     eval_dataset=dataset["test"],
     tokenizer=tokenizer,
+    save_dir=save_dir,
 )
 wandb.log(metrics)

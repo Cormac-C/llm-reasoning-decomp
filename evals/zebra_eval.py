@@ -129,6 +129,7 @@ def eval_model_zebra(
     response_template="<|start_header_id|>assistant<|end_header_id|>",
     compute_metrics=compute_zebra_metrics,
     content_key="formatted_text",
+    save_dir="/tmp",
 ):
     model.eval()
 
@@ -140,7 +141,9 @@ def eval_model_zebra(
         lambda examples: tokenizer(examples[content_key]), batched=True
     )
 
-    training_args = SFTConfig(eval_accumulation_steps=20, report_to="wandb")
+    training_args = SFTConfig(
+        output_dir=save_dir, eval_accumulation_steps=20, report_to="wandb"
+    )
 
     trainer = SFTTrainer(
         model=model,
