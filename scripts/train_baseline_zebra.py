@@ -83,7 +83,8 @@ def train_zebra_baseline(
         device_map="auto",
     )
 
-    wandb.log({"model": model_name, "model_dtype": model.dtype})
+    print(f"Loaded model: {model_name}")
+    print(f"Model precision: {model.config.torch_dtype}")
 
     dataset = load_prep_zebra_dataset(
         tokenizer=tokenizer,
