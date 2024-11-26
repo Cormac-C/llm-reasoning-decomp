@@ -102,6 +102,7 @@ class ZebraPuzzleMetric(evaluate.Metric):
                 iter_partial_correct += correct_subparts
                 iter_subparts += total_subparts
 
+            print(f"Partial correct: {iter_partial_correct}/{iter_subparts}")
             # Update totals
             num_subparts += iter_subparts
             if iter_subparts == iter_partial_correct:
@@ -143,9 +144,9 @@ def eval_model_zebra(
 
     training_args = SFTConfig(
         output_dir=save_dir,
-        dataset_batch_size=8,
+        dataset_batch_size=1,
         report_to="wandb",
-        eval_accumulation_steps=4,
+        eval_accumulation_steps=1,
     )
 
     trainer = SFTTrainer(
