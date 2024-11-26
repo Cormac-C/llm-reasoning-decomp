@@ -142,7 +142,10 @@ def eval_model_zebra(
     )
 
     training_args = SFTConfig(
-        output_dir=save_dir, eval_accumulation_steps=20, report_to="wandb"
+        output_dir=save_dir,
+        dataset_batch_size=8,
+        report_to="wandb",
+        eval_accumulation_steps=4,
     )
 
     trainer = SFTTrainer(
