@@ -126,10 +126,17 @@ def compute_zebra_metrics(predictions, references):
     return {f"eval_{k}": v for k, v in results.items()}
 
 
+def compute_zebra_metrics_for_trainer(eval_preds):
+    print("compute zebra metrics for trainer")
+    preds, labels = eval_preds
+    preds = [pred["generated_text"] for pred in preds]
+    return compute_zebra_metrics(preds, labels)
+
+
 def preprocess_logits_for_metrics(logits, labels):
     if isinstance(logits, tuple):
         logits = logits[0]
-    return logits
+    return logits, labels
 
 
 def eval_model_zebra(
@@ -138,7 +145,7 @@ def eval_model_zebra(
     tokenizer,
     formatting_prompts_func=None,
     response_template="<|start_header_id|>assistant<|end_header_id|>",
-    compute_metrics=compute_zebra_metrics,
+    compute_metrics=compute_zebra_metrics_for_trainer,
     content_key="formatted_text",
     save_dir="/tmp",
     run_name="",
