@@ -1,9 +1,6 @@
 from transformers import AutoModelForCausalLM as Model
 from datasets import Dataset
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer, SFTConfig
-from torch.utils.data import DataLoader
-import torch
-import wandb
 import evaluate
 import re
 
@@ -135,7 +132,7 @@ def eval_model_zebra(
     compute_metrics=compute_zebra_metrics,
     content_key="formatted_text",
     save_dir="/tmp",
-    device="cuda",
+    run_name="",
 ):
     model.eval()
 
@@ -147,64 +144,21 @@ def eval_model_zebra(
         lambda examples: tokenizer(examples[content_key]), batched=True
     )
 
-    eval_dataloader = DataLoader(
-        eval_dataset, batch_size=1, collate_fn=collator, shuffle=False
+    training_args = SFTConfig(
+        output_dir=save_dir,
+        dataset_batch_size=1,
+        report_to="wandb",
+        run_name=run_name,
+        eval_accumulation_steps=1,
     )
 
-    # Initialize predictions and references lists
-    all_preds = []
-    all_refs = []
-
-    # Evaluation loop
-    with torch.no_grad():
-        for batch in eval_dataloader:
-            # Move batch to device
-            inputs = {
-                k: v.to(device) for k, v in batch.items() if isinstance(v, torch.Tensor)
-            }
-
-            # Generate predictions
-            outputs = model.generate(
-                input_ids=inputs["input_ids"],
-                attention_mask=inputs["attention_mask"],
-                max_new_tokens=512,
-                pad_token_id=model.config.pad_token_id,
-                eos_token_id=model.config.eos_token_id,
-            )
-
-            # Decode predictions
-            decoded_preds = tokenizer.batch_decode(outputs, skip_special_tokens=True)
-            all_preds.extend(decoded_preds)
-
-            # Store references
-            decoded_refs = tokenizer.batch_decode(
-                inputs["input_ids"], skip_special_tokens=True
-            )
-            all_refs.extend(decoded_refs)
-
-            # Clear GPU memory
-            torch.cuda.empty_cache()
-
-    # Compute metrics
-    eval_metrics = compute_metrics(predictions=all_preds, references=all_refs)
-
-    # Log to wandb
-    wandb.log(eval_metrics)
-
-    # training_args = SFTConfig(
-    #     output_dir=save_dir,
-    #     dataset_batch_size=1,
-    #     report_to="wandb",
-    #     eval_accumulation_steps=1,
-    # )
-
-    # trainer = SFTTrainer(
-    #     model=model,
-    #     eval_dataset=eval_dataset,
-    #     formatting_func=formatting_prompts_func,
-    #     data_collator=collator,
-    #     compute_metrics=compute_metrics,
-    #     args=training_args,
-    # )
-    # eval_metrics = trainer.evaluate()
+    trainer = SFTTrainer(
+        model=model,
+        eval_dataset=eval_dataset,
+        formatting_func=formatting_prompts_func,
+        data_collator=collator,
+        compute_metrics=compute_metrics,
+        args=training_args,
+    )
+    eval_metrics = trainer.evaluate()
     return eval_metrics
