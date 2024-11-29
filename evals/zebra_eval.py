@@ -134,9 +134,10 @@ def compute_zebra_metrics_for_trainer(eval_preds):
 
 
 def preprocess_logits_for_metrics(logits, labels):
+    print("preprocess logits for metrics")
     if isinstance(logits, tuple):
         logits = logits[0]
-    return logits, labels
+    return logits
 
 
 def eval_model_zebra(
