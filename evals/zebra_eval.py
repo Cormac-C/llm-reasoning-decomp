@@ -3,6 +3,7 @@ from datasets import Dataset
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer, SFTConfig
 import evaluate
 import re
+import torch
 
 
 class ZebraPuzzleMetric(evaluate.Metric):
@@ -185,9 +186,9 @@ def eval_model_zebra(
     print(f"eval_dataset: {eval_dataset}")
     pred_output = trainer.predict(test_dataset=eval_dataset)
     print(f"predictions: {pred_output}")
-    decoded_preds = tokenizer.batch_decode(
-        pred_output.predictions, skip_special_tokens=True
-    )
+    predictions = torch.tensor(pred_output.predictions).long()
+
+    decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
     print(f"decoded predictions: {decoded_preds}")
     references = eval_dataset["formatted_text"]
 
