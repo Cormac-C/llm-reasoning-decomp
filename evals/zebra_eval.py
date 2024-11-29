@@ -150,6 +150,7 @@ def eval_model_zebra(
         report_to="wandb",
         run_name=run_name,
         eval_packing=False,
+        per_device_eval_batch_size=2,
     )
 
     trainer = SFTTrainer(
