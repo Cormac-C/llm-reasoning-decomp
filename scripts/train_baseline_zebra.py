@@ -51,6 +51,16 @@ def clear_gpu_memory(model):
     return model
 
 
+def log_zebra_metrics(metrics, run_name):
+    wandb.log(
+        {
+            "zebra/strict_accuracy": metrics["strict_accuracy"],
+            "zebra/partial_accuracy": metrics["partial_accuracy"],
+        },
+        run=run_name,
+    )
+
+
 def get_sft_config(run_name=None):
     return SFTConfig(
         output_dir="/tmp",
@@ -144,7 +154,7 @@ tokenizer, trained_model, dataset = train_zebra_baseline(
 )
 
 # Clear GPU cache except for model and dataset
-wandb.log("Clearing GPU memory before eval")
+print("Clearing GPU memory before eval")
 clear_gpu_memory(trained_model)
 
 
@@ -157,3 +167,4 @@ metrics = eval_model_zebra(
     run_name=RUN_NAME + "-eval",
 )
 wandb.log(metrics)
+log_zebra_metrics(metrics, run_name=RUN_NAME)
