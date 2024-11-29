@@ -119,10 +119,11 @@ class ZebraPuzzleMetric(evaluate.Metric):
 
 
 def compute_zebra_metrics(predictions, references):
+    print("compute zebra metrics")
     metric = ZebraPuzzleMetric()
     results = metric.compute(predictions=predictions, references=references)
-    print(results)
-    return results
+    print(f"zebra metric results: {results}")
+    return {f"eval_{k}": v for k, v in results.items()}
 
 
 def preprocess_logits_for_metrics(logits, labels):
