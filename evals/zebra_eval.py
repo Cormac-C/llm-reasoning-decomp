@@ -10,9 +10,7 @@ class ZebraPuzzleMetric(evaluate.Metric):
         self.strict_accuracy = 0.0
         self.partial_accuracy = 0.0
 
-    def _extract_and_split_parts(self, text):
-        # Each part should correspond to one house in the zebra puzzle
-        answer_starts = [
+        self._answer_starts = [
             "The solution is as follows:",
             "The solution is:",
             "Answer:",
@@ -20,27 +18,31 @@ class ZebraPuzzleMetric(evaluate.Metric):
             "Therefore,",
             "as follows:",
         ]
-        answer_starts_re = re.compile(
-            "|".join(re.escape(start) for start in answer_starts),
+        self._answer_start_pattern = re.compile(
+            "|".join(re.escape(start) for start in self._answer_starts),
             flags=re.IGNORECASE,
         )
+        self._split_pattern = re.compile(r"\n|\.|•|;")
+        self._whitespace_pattern = re.compile(r"\s+")
+        self._house_pattern = re.compile(r"House (\d+)", re.IGNORECASE)
 
-        match = answer_starts_re.search(text)
+    def _extract_and_split_parts(self, text):
+        # Each part should correspond to one house in the zebra puzzle
+        match = self._answer_start_pattern.search(text)
         if match:
             text = text[match.end() :]
 
         # Split the answer into parts (should correspond to the number of sentences)
-        split_regex = r"\n|\.|•|;"
-        parts = re.split(split_regex, text)
-        parts = [part.strip() for part in parts if part.strip()]
+        parts = [
+            part.strip() for part in self._split_pattern.split(text) if part.strip()
+        ]
         return parts
 
     def _normalize_string(self, text):
-        return re.sub(r"\s+", " ", text.lower().strip())
+        return self._whitespace_pattern.sub(" ", text.lower().strip())
 
     def _extract_house_number(self, text):
-        house_pattern = re.compile(r"House (\d+)", re.IGNORECASE)
-        house_num = house_pattern.search(text)
+        house_num = self._house_pattern.search(text)
         house_num = int(house_num.group(1)) if house_num else None
         return house_num
 
