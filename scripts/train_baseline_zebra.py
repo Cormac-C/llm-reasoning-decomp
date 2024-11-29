@@ -36,11 +36,11 @@ device = (
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-RUN_NAME = "zebra-3b"
+RUN_NAME = "zebra-1b"
 
 BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
 
-MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
+MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 
 
 def clear_gpu_memory(model):
