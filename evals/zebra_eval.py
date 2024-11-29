@@ -180,14 +180,11 @@ def eval_model_zebra(
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
-    print("evaluating model")
-    eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
-    print("got eval dataloader")
-    print(eval_dataloader)
-    # Check dataloader
-    for batch in eval_dataloader:
-        print(batch)
-        break
-    eval_metrics = trainer.evaluate()
+    # eval_metrics = trainer.evaluate()
+    print("start predicting")
+    print(f"eval_dataset: {eval_dataset}")
+    predictions = trainer.predict(test_dataset=eval_dataset)
+    print(f"predictions: {predictions}")
+    eval_metrics = compute_zebra_metrics(predictions, eval_dataset["formatted_text"])
     print(f"eval metrics {eval_metrics}")
     return eval_metrics
