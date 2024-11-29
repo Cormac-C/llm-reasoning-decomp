@@ -168,6 +168,7 @@ def eval_model_zebra(
         eval_packing=False,
         per_device_eval_batch_size=4,
         eval_accumulation_steps=16,
+        evaluation_strategy="steps",
     )
 
     trainer = SFTTrainer(
