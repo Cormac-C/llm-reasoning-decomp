@@ -177,8 +177,13 @@ def eval_model_zebra(
         data_collator=collator,
         compute_metrics=compute_zebra_metrics_for_trainer,
         args=training_args,
-        # preprocess_logits_for_metrics=preprocess_logits_for_metrics,
+        preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
+    eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
+    # Check dataloader
+    for batch in eval_dataloader:
+        print(batch)
+        break
     eval_metrics = trainer.evaluate()
     print(f"eval metrics {eval_metrics}")
     return eval_metrics
