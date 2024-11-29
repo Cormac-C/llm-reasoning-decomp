@@ -39,6 +39,18 @@ BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
 MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
 
 
+def clear_gpu_memory(model):
+    model.zero_grad(set_to_none=True)
+
+    model_device = next(model.parameters()).device
+    model.to("cpu")
+
+    torch.cuda.empty_cache()
+
+    model.to(model_device)
+    return model
+
+
 def get_sft_config(run_name=None):
     return SFTConfig(
         output_dir="/tmp",
@@ -130,6 +142,10 @@ tokenizer, trained_model, dataset = train_zebra_baseline(
     save_dir=save_dir,
     run_name=RUN_NAME,
 )
+
+# Clear GPU cache except for model and dataset
+clear_gpu_memory(trained_model)
+
 
 # Evaluate the trained model
 metrics = eval_model_zebra(
