@@ -138,7 +138,7 @@ save_dir = BASE_DIR + RUN_NAME
 tokenizer, trained_model, dataset = train_zebra_baseline(
     instruction_tuned=True,
     model_name=MODEL_NAME,
-    test_split_size=0.2,
+    test_split_size=0.15,
     save_dir=save_dir,
     run_name=RUN_NAME,
 )
