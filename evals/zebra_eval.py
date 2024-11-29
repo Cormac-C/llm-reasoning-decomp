@@ -149,7 +149,7 @@ def eval_model_zebra(
         dataset_batch_size=1,
         report_to="wandb",
         run_name=run_name,
-        eval_accumulation_steps=1,
+        eval_packing=False,
     )
 
     trainer = SFTTrainer(
