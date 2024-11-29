@@ -144,6 +144,7 @@ tokenizer, trained_model, dataset = train_zebra_baseline(
 )
 
 # Clear GPU cache except for model and dataset
+wandb.log("Clearing GPU memory before eval")
 clear_gpu_memory(trained_model)
 
 

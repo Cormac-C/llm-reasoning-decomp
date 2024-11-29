@@ -120,7 +120,9 @@ class ZebraPuzzleMetric(evaluate.Metric):
 
 def compute_zebra_metrics(predictions, references):
     metric = ZebraPuzzleMetric()
-    return metric.compute(predictions=predictions, references=references)
+    results = metric.compute(predictions=predictions, references=references)
+    print(results)
+    return results
 
 
 def preprocess_logits_for_metrics(logits, labels):
@@ -170,4 +172,5 @@ def eval_model_zebra(
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
     eval_metrics = trainer.evaluate()
+    print(f"eval metrics {eval_metrics}")
     return eval_metrics
