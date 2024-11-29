@@ -146,7 +146,6 @@ def eval_model_zebra(
     tokenizer,
     formatting_prompts_func=None,
     response_template="<|start_header_id|>assistant<|end_header_id|>",
-    # compute_metrics=compute_zebra_metrics_for_trainer,
     content_key="formatted_text",
     save_dir="/tmp",
     run_name="",
@@ -181,17 +180,6 @@ def eval_model_zebra(
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
-    # eval_metrics = trainer.evaluate()
-    print("start predicting")
-    print(f"eval_dataset: {eval_dataset}")
-    pred_output = trainer.predict(test_dataset=eval_dataset)
-    print(f"predictions: {pred_output}")
-    predictions = torch.tensor(pred_output.predictions).long()
+    eval_metrics = trainer.evaluate()
 
-    decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
-    print(f"decoded predictions: {decoded_preds}")
-    references = eval_dataset["formatted_text"]
-
-    eval_metrics = compute_zebra_metrics(decoded_preds, references)
-    print(f"eval metrics {eval_metrics}")
     return eval_metrics
