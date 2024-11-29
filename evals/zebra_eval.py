@@ -123,6 +123,12 @@ def compute_zebra_metrics(predictions, references):
     return metric.compute(predictions=predictions, references=references)
 
 
+def preprocess_logits_for_metrics(logits, labels):
+    if isinstance(logits, tuple):
+        logits = logits[0]
+    return logits
+
+
 def eval_model_zebra(
     model: Model,
     eval_dataset: Dataset,
@@ -150,7 +156,8 @@ def eval_model_zebra(
         report_to="wandb",
         run_name=run_name,
         eval_packing=False,
-        per_device_eval_batch_size=1,
+        per_device_eval_batch_size=4,
+        eval_accumulation_steps=16,
     )
 
     trainer = SFTTrainer(
@@ -160,6 +167,7 @@ def eval_model_zebra(
         data_collator=collator,
         compute_metrics=compute_metrics,
         args=training_args,
+        preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
     eval_metrics = trainer.evaluate()
     return eval_metrics
