@@ -134,7 +134,6 @@ def compute_zebra_metrics_for_trainer(eval_preds):
 
 
 def preprocess_logits_for_metrics(logits, labels):
-    print("preprocess logits for metrics")
     if isinstance(logits, tuple):
         logits = logits[0]
     return logits
@@ -146,7 +145,7 @@ def eval_model_zebra(
     tokenizer,
     formatting_prompts_func=None,
     response_template="<|start_header_id|>assistant<|end_header_id|>",
-    compute_metrics=compute_zebra_metrics_for_trainer,
+    # compute_metrics=compute_zebra_metrics_for_trainer,
     content_key="formatted_text",
     save_dir="/tmp",
     run_name="",
@@ -176,7 +175,7 @@ def eval_model_zebra(
         eval_dataset=eval_dataset,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
-        compute_metrics=compute_metrics,
+        compute_metrics=compute_zebra_metrics_for_trainer,
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )

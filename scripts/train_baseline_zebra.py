@@ -169,7 +169,7 @@ metrics = eval_model_zebra(
     tokenizer=tokenizer,
     save_dir=save_dir,
     run_name=RUN_NAME + "-eval",
-    compute_metrics=compute_zebra_metrics_for_trainer,
+    # compute_metrics=compute_zebra_metrics_for_trainer,
 )
 wandb.log(metrics)
 # log_zebra_metrics(metrics, run_name=RUN_NAME)
