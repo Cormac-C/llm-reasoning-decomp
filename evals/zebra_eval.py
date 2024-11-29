@@ -179,7 +179,10 @@ def eval_model_zebra(
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
+    print("evaluating model")
     eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
+    print("got eval dataloader")
+    print(eval_dataloader)
     # Check dataloader
     for batch in eval_dataloader:
         print(batch)
