@@ -183,8 +183,14 @@ def eval_model_zebra(
     # eval_metrics = trainer.evaluate()
     print("start predicting")
     print(f"eval_dataset: {eval_dataset}")
-    predictions = trainer.predict(test_dataset=eval_dataset)
-    print(f"predictions: {predictions}")
-    eval_metrics = compute_zebra_metrics(predictions, eval_dataset["formatted_text"])
+    pred_output = trainer.predict(test_dataset=eval_dataset)
+    print(f"predictions: {pred_output}")
+    decoded_preds = tokenizer.batch_decode(
+        pred_output.predictions, skip_special_tokens=True
+    )
+    print(f"decoded predictions: {decoded_preds}")
+    references = eval_dataset["formatted_text"]
+
+    eval_metrics = compute_zebra_metrics(decoded_preds, references)
     print(f"eval metrics {eval_metrics}")
     return eval_metrics
