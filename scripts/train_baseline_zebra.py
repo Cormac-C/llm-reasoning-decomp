@@ -1,11 +1,13 @@
 import os
 import sys
 import torch
+import wandb
 
 from peft import LoraConfig
 from dotenv import load_dotenv
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import Dataset
+from trl import SFTConfig
 
 # Setup module path for local imports
 module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -15,8 +17,8 @@ if module_path not in sys.path:
 from src.train import sft_train_lora
 from src.model import identify_target_modules
 from data.zebra import Zebra
-from evals.zebra_eval import compute_zebra_metrics
 from data.format import chat_format_qa_instance, lm_format_qa_instance
+from evals.zebra_eval import eval_model_zebra_no_trainer
 
 # Load environment variables
 load_dotenv()
@@ -27,6 +29,38 @@ device = (
     if torch.cuda.is_available()
     else "mps" if torch.backends.mps.is_available() else "cpu"
 )
+
+wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
+
+RUN_NAME = "zebra-1b"
+
+BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
+
+MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
+
+
+def clear_gpu_memory(model):
+    model.zero_grad(set_to_none=True)
+
+    model_device = next(model.parameters()).device
+    model.to("cpu")
+
+    torch.cuda.empty_cache()
+
+    model.to(model_device)
+    return model
+
+
+def get_sft_config(run_name=None):
+    return SFTConfig(
+        output_dir="/tmp",
+        run_name=run_name,
+        # Eval_strategy set to "no" temporarily cause of https://github.com/huggingface/transformers/issues/34701
+        eval_strategy="no",
+        report_to="wandb",
+        logging_steps=10,
+        dataset_batch_size=16,
+    )
 
 
 def load_prep_zebra_dataset(tokenizer, instruction_tuned=True, test_split_size=0.2):
@@ -49,6 +83,7 @@ def train_zebra_baseline(
     model_name="meta-llama/Llama-3.2-1B-Instruct",
     test_split_size=0.2,
     save_dir="/tmp",
+    run_name=None,
 ):
     tokenizer = AutoTokenizer.from_pretrained(model_name, token=os.environ["HF_TOKEN"])
     tokenizer.pad_token = tokenizer.eos_token
@@ -56,7 +91,12 @@ def train_zebra_baseline(
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         token=os.environ["HF_TOKEN"],
+        torch_dtype="auto",
+        device_map="auto",
     )
+
+    print(f"Loaded model: {model_name}")
+    print(f"Model precision: {model.config.torch_dtype}")
 
     dataset = load_prep_zebra_dataset(
         tokenizer=tokenizer,
@@ -72,23 +112,45 @@ def train_zebra_baseline(
         bias="none",
     )
 
-    sft_train_lora(
-        base_model=model,
-        train_dataset=dataset["train"],
-        eval_dataset=dataset["test"],
-        tokenizer=tokenizer,
-        adapter_name="llama-1b-instruct-zebra",
-        response_template="<|start_header_id|>assistant<|end_header_id|>",
-        lora_config=lora_config,
-        save_dir=save_dir,
+    training_config = get_sft_config(run_name=run_name)
+
+    adapter_name = "llama-instruct" + run_name
+
+    return (
+        tokenizer,
+        sft_train_lora(
+            base_model=model,
+            train_dataset=dataset["train"],
+            eval_dataset=dataset["test"],
+            tokenizer=tokenizer,
+            adapter_name=adapter_name,
+            response_template="<|start_header_id|>assistant<|end_header_id|>",
+            lora_config=lora_config,
+            training_args=training_config,
+            save_dir=save_dir,
+        ),
+        dataset,
     )
 
-    pass
 
+save_dir = BASE_DIR + RUN_NAME
 
-train_zebra_baseline(
+tokenizer, trained_model, dataset = train_zebra_baseline(
     instruction_tuned=True,
-    model_name="meta-llama/Llama-3.2-1B-Instruct",
-    test_split_size=0.2,
-    save_dir="/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files",
+    model_name=MODEL_NAME,
+    test_split_size=0.15,
+    save_dir=save_dir,
+    run_name=RUN_NAME,
 )
+
+# Clear GPU cache except for model and dataset
+clear_gpu_memory(trained_model)
+
+
+# Evaluate the trained model
+
+metrics = eval_model_zebra_no_trainer(
+    model=trained_model, eval_dataset=dataset["test"], tokenizer=tokenizer
+)
+
+wandb.log(metrics)
