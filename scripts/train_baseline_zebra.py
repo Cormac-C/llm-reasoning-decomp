@@ -20,6 +20,7 @@ from data.zebra import Zebra
 from data.format import chat_format_qa_instance, lm_format_qa_instance
 from evals.zebra_eval import (
     eval_model_zebra,
+    eval_model_zebra_no_trainer,
     compute_zebra_metrics,
     compute_zebra_metrics_for_trainer,
 )
@@ -163,7 +164,16 @@ clear_gpu_memory(trained_model)
 
 
 # Evaluate the trained model
-metrics = eval_model_zebra(
+# metrics = eval_model_zebra(
+#     model=trained_model,
+#     eval_dataset=dataset["test"],
+#     tokenizer=tokenizer,
+#     save_dir=save_dir,
+#     run_name=RUN_NAME + "-eval",
+#     # compute_metrics=compute_zebra_metrics_for_trainer,
+# )
+
+metrics = eval_model_zebra_no_trainer(
     model=trained_model,
     eval_dataset=dataset["test"],
     tokenizer=tokenizer,
@@ -171,5 +181,6 @@ metrics = eval_model_zebra(
     run_name=RUN_NAME + "-eval",
     # compute_metrics=compute_zebra_metrics_for_trainer,
 )
+
 wandb.log(metrics)
 # log_zebra_metrics(metrics, run_name=RUN_NAME)

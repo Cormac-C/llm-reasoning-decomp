@@ -183,3 +183,83 @@ def eval_model_zebra(
     eval_metrics = trainer.evaluate()
 
     return eval_metrics
+
+
+def eval_model_zebra_no_trainer(
+    model: Model,
+    eval_dataset: Dataset,
+    tokenizer,
+    response_template="<|start_header_id|>assistant<|end_header_id|>",
+    content_key="formated_text",
+    save_dir="/tmp",
+    run_name="",
+):
+    BATCH_SIZE = 1
+
+    model.eval()
+
+    print(f"eval_dataset: {eval_dataset}")
+
+    eval_dataset = eval_dataset.map(
+        lambda examples: tokenizer(
+            examples[content_key],
+            padding="max_length",
+            truncation=True,
+            return_tensors=None,
+        ),
+        batched=True,
+        remove_columns=[content_key],
+    )
+
+    print(f"eval_dataset: {eval_dataset}")
+
+    print(eval_dataset[0])
+
+    # Create data loader
+    collator = DataCollatorForCompletionOnlyLM(
+        response_template=response_template, tokenizer=tokenizer
+    )
+    eval_dataloader = torch.utils.data.DataLoader(
+        eval_dataset,
+        collate_fn=collator,
+        batch_size=BATCH_SIZE,
+    )
+
+    print(f"eval_dataloader: {eval_dataloader}")
+    first_element = next(iter(eval_dataloader))
+    print(f"element: {first_element}")
+
+    # Initialize metric
+    metric = ZebraPuzzleMetric()
+
+    # Initialize variables
+    predictions = []
+    references = []
+
+    # Iterate over the dataset
+    for batch in eval_dataloader:
+        print(f"batch: {batch}")
+        # Forward pass
+        with torch.no_grad():
+            model_inputs = {
+                "input_ids": batch["input_ids"],
+                "attention_mask": batch["attention_mask"],
+            }
+
+            outputs = model(**model_inputs)
+            logits = outputs.logits
+
+        # Postprocess logits
+        logits = preprocess_logits_for_metrics(logits, batch["labels"])
+
+        # Decode logits
+        pred = tokenizer.decode(logits[0].argmax(dim=-1))
+
+        # Store predictions and references
+        predictions.append(pred)
+        references.append(batch["labels"][0])
+
+    # Compute metrics
+    eval_metrics = metric.compute(predictions=predictions, references=references)
+
+    return eval_metrics
