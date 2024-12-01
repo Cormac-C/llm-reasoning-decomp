@@ -191,14 +191,10 @@ def eval_model_zebra_no_trainer(
     tokenizer,
     response_template="<|start_header_id|>assistant<|end_header_id|>",
     content_key="formated_text",
-    save_dir="/tmp",
-    run_name="",
 ):
     BATCH_SIZE = 1
 
     model.eval()
-
-    print(f"eval_dataset: {eval_dataset}")
 
     eval_dataset = eval_dataset.map(
         lambda examples: tokenizer(
@@ -211,10 +207,6 @@ def eval_model_zebra_no_trainer(
         remove_columns=[content_key],
     )
 
-    print(f"eval_dataset: {eval_dataset}")
-
-    print(eval_dataset[0])
-
     # Create data loader
     collator = DataCollatorForCompletionOnlyLM(
         response_template=response_template, tokenizer=tokenizer
@@ -225,9 +217,7 @@ def eval_model_zebra_no_trainer(
         batch_size=BATCH_SIZE,
     )
 
-    print(f"eval_dataloader: {eval_dataloader}")
     first_element = next(iter(eval_dataloader))
-    print(f"element: {first_element}")
 
     # Initialize metric
     metric = ZebraPuzzleMetric()
@@ -238,7 +228,6 @@ def eval_model_zebra_no_trainer(
 
     # Iterate over the dataset
     for batch in eval_dataloader:
-        print(f"batch: {batch}")
         # Forward pass
         with torch.no_grad():
             model_inputs = {

@@ -18,12 +18,7 @@ from src.train import sft_train_lora
 from src.model import identify_target_modules
 from data.zebra import Zebra
 from data.format import chat_format_qa_instance, lm_format_qa_instance
-from evals.zebra_eval import (
-    eval_model_zebra,
-    eval_model_zebra_no_trainer,
-    compute_zebra_metrics,
-    compute_zebra_metrics_for_trainer,
-)
+from evals.zebra_eval import eval_model_zebra_no_trainer
 
 # Load environment variables
 load_dotenv()
@@ -54,16 +49,6 @@ def clear_gpu_memory(model):
 
     model.to(model_device)
     return model
-
-
-def log_zebra_metrics(metrics, run_name):
-    wandb.log(
-        {
-            "zebra/strict_accuracy": metrics["strict_accuracy"],
-            "zebra/partial_accuracy": metrics["partial_accuracy"],
-        },
-        run=run_name,
-    )
 
 
 def get_sft_config(run_name=None):
@@ -159,28 +144,13 @@ tokenizer, trained_model, dataset = train_zebra_baseline(
 )
 
 # Clear GPU cache except for model and dataset
-print("Clearing GPU memory before eval")
 clear_gpu_memory(trained_model)
 
 
 # Evaluate the trained model
-# metrics = eval_model_zebra(
-#     model=trained_model,
-#     eval_dataset=dataset["test"],
-#     tokenizer=tokenizer,
-#     save_dir=save_dir,
-#     run_name=RUN_NAME + "-eval",
-#     # compute_metrics=compute_zebra_metrics_for_trainer,
-# )
 
 metrics = eval_model_zebra_no_trainer(
-    model=trained_model,
-    eval_dataset=dataset["test"],
-    tokenizer=tokenizer,
-    save_dir=save_dir,
-    run_name=RUN_NAME + "-eval",
-    # compute_metrics=compute_zebra_metrics_for_trainer,
+    model=trained_model, eval_dataset=dataset["test"], tokenizer=tokenizer
 )
 
 wandb.log(metrics)
-# log_zebra_metrics(metrics, run_name=RUN_NAME)
