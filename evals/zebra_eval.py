@@ -120,15 +120,12 @@ class ZebraPuzzleMetric(evaluate.Metric):
 
 
 def compute_zebra_metrics(predictions, references):
-    print("compute zebra metrics")
     metric = ZebraPuzzleMetric()
     results = metric.compute(predictions=predictions, references=references)
-    print(f"zebra metric results: {results}")
     return {f"eval_{k}": v for k, v in results.items()}
 
 
 def compute_zebra_metrics_for_trainer(eval_preds):
-    print("compute zebra metrics for trainer")
     preds, labels = eval_preds
     preds = [pred["generated_text"] for pred in preds]
     return compute_zebra_metrics(preds, labels)

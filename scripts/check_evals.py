@@ -1,27 +1,19 @@
 import os
 import sys
 import torch
-import wandb
 
-from peft import LoraConfig
 from dotenv import load_dotenv
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer
 from datasets import Dataset
-from trl import SFTConfig
 
 # Setup module path for local imports
 module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
-from src.train import sft_train_lora
-from src.model import identify_target_modules
 from data.zebra import Zebra
 from data.format import chat_format_qa_instance, lm_format_qa_instance
 from evals.zebra_eval import (
-    eval_model_zebra,
-    compute_zebra_metrics,
-    compute_zebra_metrics_for_trainer,
     eval_model_zebra_no_trainer,
 )
 
@@ -60,8 +52,6 @@ tokenizer.pad_token = tokenizer.eos_token
 zebra_dataset = load_prep_zebra_dataset(
     tokenizer, instruction_tuned=True, test_split_size=0.2
 )
-
-print(zebra_dataset)
 
 eval_dataset = zebra_dataset["test"]
 
