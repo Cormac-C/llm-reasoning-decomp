@@ -62,6 +62,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 peft_model = PeftModel.from_pretrained(model, ADAPTER_DIR, "zebra")
+peft_model.to(device)
 
 print(f"Loaded model: {MODEL_NAME}")
 print(f"Model precision: {model.config.torch_dtype}")
@@ -73,9 +74,12 @@ dataset = load_prep_zebra_dataset(
     tokenizer, instruction_tuned=True, test_split_size=0.2
 )
 
+dataset = dataset["test"]
+dataset.to(device)
+
 metrics = eval_model_zebra_no_trainer(
     model=peft_model,
-    eval_dataset=dataset["test"],
+    eval_dataset=dataset,
     tokenizer=tokenizer,
 )
 
