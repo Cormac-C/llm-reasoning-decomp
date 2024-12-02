@@ -15,7 +15,7 @@ if module_path not in sys.path:
 
 from data.zebra import Zebra
 from data.format import chat_format_qa_instance, lm_format_qa_instance
-from evals.zebra_eval import eval_model_zebra
+from evals.zebra_eval import eval_model_zebra, eval_model_zebra_no_trainer
 
 
 # Load environment variables
@@ -30,7 +30,7 @@ device = (
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-1b"
+ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-1b/llama-1b-instruct-zebra"
 
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 
@@ -68,10 +68,12 @@ dataset = load_prep_zebra_dataset(
     tokenizer, instruction_tuned=True, test_split_size=0.2
 )
 
-metrics = eval_model_zebra(
+metrics = eval_model_zebra_no_trainer(
     model=peft_model,
     eval_dataset=dataset["test"],
     tokenizer=tokenizer,
 )
+
+print(metrics)
 
 wandb.log(metrics)
