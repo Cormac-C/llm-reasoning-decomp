@@ -232,8 +232,8 @@ def eval_model_zebra_no_trainer(
                 "attention_mask": batch["attention_mask"],
             }
 
-            print(f"batch device {batch.device}")
-            print(f"model device {model.device}")
+            print(f"batch device {batch.get_device()}")
+            print(f"model device {model.get_device()}")
 
             outputs = model(**model_inputs)
             logits = outputs.logits
