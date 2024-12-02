@@ -57,9 +57,14 @@ tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
     token=os.environ["HF_TOKEN"],
+    torch_dtype="auto",
+    device_map="auto",
 )
 
 peft_model = PeftModel.from_pretrained(model, ADAPTER_DIR, "zebra")
+
+print(f"Loaded model: {MODEL_NAME}")
+print(f"Model precision: {model.config.torch_dtype}")
 
 peft_model.eval()
 
