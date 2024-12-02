@@ -75,7 +75,6 @@ dataset = load_prep_zebra_dataset(
 )
 
 dataset = dataset["test"]
-dataset.to(device)
 
 metrics = eval_model_zebra_no_trainer(
     model=peft_model,
