@@ -2,12 +2,12 @@ from torch.utils.data import Dataset
 import json
 
 class Countdown(Dataset):
-    def __init__(self, json_file):
+    def __init__(self, json_file, rating_threshold=0.97):
         with open(json_file, 'r') as f:
             self.data = json.load(f)
 
-        # Filter examples with rating > 0.9
-        self.data = [item for item in self.data if item["rating"] > 0.9]
+        # Filter examples with rating > threshold
+        self.data = [item for item in self.data if item["rating"] > rating_threshold]
 
     def __len__(self):
         return len(self.data)

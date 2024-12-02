@@ -71,7 +71,7 @@ def load_prep_countdown_sos(tokenizer, instruction_tuned=True, test_split_size=0
     )
 
     if instruction_tuned:
-        formatted_list = [format_with_few_shot(example, instruction_tuned) for example in dataset]
+        formatted_list = [format_with_few_shot(example, few_shot_prompt, instruction_tuned) for example in dataset]
         formatted_list = tokenizer.apply_chat_template(
             formatted_list, tokenize=False, add_generation_prompt=False
         )
@@ -82,7 +82,7 @@ def load_prep_countdown_sos(tokenizer, instruction_tuned=True, test_split_size=0
     dataset = dataset.train_test_split(test_size=test_split_size)
     return dataset
 
-def format_with_few_shot(example, use_chat_format=True):
+def format_with_few_shot(example, few_shot_prompt, use_chat_format=True):
     task_description = (
         "You are tasked to solve arithmetic reasoning problems. "
         "Given a set of numbers and a target, describe the steps in the path to reach the target using those numbers."
