@@ -187,7 +187,7 @@ def eval_model_zebra_no_trainer(
     eval_dataset: Dataset,
     tokenizer,
     response_template="<|start_header_id|>assistant<|end_header_id|>",
-    content_key="formated_text",
+    content_key="formatted_text",
 ):
     BATCH_SIZE = 1
 
