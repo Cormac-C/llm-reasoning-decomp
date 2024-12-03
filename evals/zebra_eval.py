@@ -255,14 +255,14 @@ def eval_model_zebra_no_trainer(
 
                 outputs = model(**model_inputs, max_new_tokens=max_length)
                 logits = outputs.logits
-
+            print(f"Logits shape: {logits.shape}")
             # # Postprocess logits
             # logits = preprocess_logits_for_metrics(logits, batch["labels"])
 
             # Decode logits
             pred = tokenizer.batch_decode(outputs.logits, skip_special_tokens=True)
             ref = batch["labels"][0]
-
+            print("decoded")
             # Store predictions and references
             predictions.extend(pred)
             references.extend(ref)
