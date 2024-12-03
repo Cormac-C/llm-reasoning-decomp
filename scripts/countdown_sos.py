@@ -54,10 +54,15 @@ def get_sft_config(run_name=None):
         output_dir="/tmp",
         run_name=run_name,
         # Eval_strategy set to "no" temporarily cause of https://github.com/huggingface/transformers/issues/34701
-        eval_strategy="no",
+        eval_strategy="steps",
+        eval_steps=100,
+        eval_packing=False,
+        per_device_eval_batch_size=4,
+        eval_accumulation_steps=1,
         report_to="wandb",
         logging_steps=10,
         dataset_batch_size=16,
+        label_names=["labels"],
     )
 
 def load_prep_countdown_sos(tokenizer, instruction_tuned=True, test_split_size=0.2):
@@ -161,13 +166,17 @@ def train_countdown_sos(
 
 save_dir = BASE_DIR + RUN_NAME
 
-tokenizer, trained_model, dataset = train_countdown_sos(
-    instruction_tuned=True,
-    model_name=MODEL_NAME,
-    test_split_size=0.15,
-    save_dir=save_dir,
-    run_name=RUN_NAME,
-)
+try:
+    tokenizer, trained_model, dataset = train_countdown_sos(
+        instruction_tuned=True,
+        model_name=MODEL_NAME,
+        test_split_size=0.2,
+        save_dir=save_dir,
+        run_name=RUN_NAME,
+    )
+except Exception as e:
+    print(f"Encountered exception: {e}")
+    pass
 
 # Clear GPU cache except for model and dataset
 clear_gpu_memory(trained_model)

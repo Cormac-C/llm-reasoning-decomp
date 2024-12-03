@@ -1,7 +1,8 @@
-from transformers import AutoModelForCausalLM as Model
+from transformers import AutoModelForCausalLM as Model, EvalPrediction
 from datasets import Dataset
-from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
+from trl import DataCollatorForCompletionOnlyLM, SFTTrainer, SFTConfig
 import numpy as np
+from typing import Dict
 import evaluate
 
 
@@ -43,37 +44,73 @@ class SudokuPuzzleMetric(evaluate.Metric):
         }
 
 
-def compute_sudoku_metrics(eval_preds):
-    logits, labels = eval_preds
-    predictions = np.argmax(logits, axis=-1)
+def compute_sudoku_metrics(predictions, references):
     metric = SudokuPuzzleMetric()
-    metric_output = metric.compute(predictions=predictions, references=labels)
-    return metric_output
+    metric_output = metric.compute(predictions=predictions, references=references)
+    return {f"eval_{k}": v for k, v in metric_output.items()}
+
+def generate_compute_metrics_fn(tokenizer):
+    def compute_sudoku_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
+        preds, labels = eval_preds
+
+        preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
+        labels = np.where(preds != -100, preds, tokenizer.pad_token_id)
+        preds_decoded = tokenizer.batch_decode(preds, skip_special_tokens=True)
+        labels_decoded = tokenizer.batch_decode(labels, skip_special_tokens=True)
+        print(f"pred decoded {preds_decoded}")
+        print(f"label decoded {labels_decoded}")
+        return compute_sudoku_metrics(preds_decoded, labels_decoded)
+    
+    return compute_sudoku_metrics_for_trainer
 
 
-def eval_baseline_sudoku(
-    base_model: Model,
+def preprocess_logits_for_metrics(logits, labels):
+    if isinstance(logits, tuple):
+        logits = logits[0]
+    return logits.argmax(dim=-1)
+
+
+def eval_model_sudoku(
+    model: Model,
     eval_dataset: Dataset,
     tokenizer,
     formatting_prompts_func=None,
-    response_template="#Answer",
-    compute_metrics=compute_sudoku_metrics,
+    response_template="<|start_header_id|>assistant<|end_header_id|>",
+    content_key="formatted_text",
+    save_dir="/tmp",
+    run_name="",
 ):
-    base_model.eval()
+    model.eval()
 
     collator = DataCollatorForCompletionOnlyLM(
         response_template=response_template, tokenizer=tokenizer
     )
     eval_dataset = eval_dataset.map(
-        lambda examples: tokenizer(examples["input_text"]), batched=True
+        lambda examples: tokenizer(examples[content_key]), batched=True
     )
+    
+    training_args = SFTConfig(
+        output_dir=save_dir,
+        dataset_batch_size=1,
+        report_to="wandb",
+        run_name=run_name,
+        eval_packing=False,
+        per_device_eval_batch_size=8,
+        eval_accumulation_steps=1,
+        eval_strategy="steps",
+        label_names=["labels"],
+    )
+
     trainer = SFTTrainer(
-        model=base_model,
+        model=model,
         eval_dataset=eval_dataset,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
-        compute_metrics=compute_metrics,
+        compute_metrics=generate_compute_metrics_fn(tokenizer),
+        args=training_args,
+        preprocess_logits_for_metrics=preprocess_logits_for_metrics
     )
+    
     eval_metrics = trainer.evaluate()
 
     return eval_metrics
