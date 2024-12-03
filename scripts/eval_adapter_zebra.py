@@ -73,7 +73,7 @@ peft_model.eval()
 
 # Load dataset
 dataset = load_prep_zebra_dataset(
-    tokenizer, instruction_tuned=True, test_split_size=0.15
+    tokenizer, instruction_tuned=True, test_split_size=0.2
 )
 
 dataset = dataset["test"]

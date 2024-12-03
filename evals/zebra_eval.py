@@ -163,10 +163,6 @@ def eval_model_zebra(
         response_template=response_template, tokenizer=tokenizer
     )
 
-    # Limit eval dataset to 15 examples for debugging
-    # TODO: Remove this line
-    # eval_dataset = eval_dataset.select(range(15))
-
     eval_dataset = eval_dataset.map(
         lambda examples: tokenizer(examples[content_key]),
         batched=True,
