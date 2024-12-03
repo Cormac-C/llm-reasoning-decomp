@@ -1,9 +1,10 @@
-from transformers import AutoModelForCausalLM as Model
+from transformers import AutoModelForCausalLM as Model, EvalPrediction
 from datasets import Dataset
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer, SFTConfig
 import evaluate
 import re
 import torch
+from typing import Dict
 
 
 class ZebraPuzzleMetric(evaluate.Metric):
@@ -125,7 +126,8 @@ def compute_zebra_metrics(predictions, references):
     return {f"eval_{k}": v for k, v in results.items()}
 
 
-def compute_zebra_metrics_for_trainer(eval_preds):
+def compute_zebra_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
+    print("Computing metrics")
     preds, labels = eval_preds
     preds = [pred["generated_text"] for pred in preds]
     return compute_zebra_metrics(preds, labels)
