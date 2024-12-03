@@ -5,6 +5,7 @@ import evaluate
 import re
 import torch
 from typing import Dict
+import numpy as np
 
 
 class ZebraPuzzleMetric(evaluate.Metric):
@@ -132,6 +133,8 @@ def generate_compute_metrics_fn(tokenizer):
         preds, labels = eval_preds
         print(f"Preds: {preds}")
         print(f"Labels: {labels}")
+        preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
+        labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
         # Need to decode the predictions and labels
         preds_decoded = tokenizer.batch_decode(preds, skip_special_tokens=True)
         labels_decoded = tokenizer.batch_decode(labels, skip_special_tokens=True)
