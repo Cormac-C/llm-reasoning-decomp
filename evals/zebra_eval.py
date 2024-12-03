@@ -70,8 +70,10 @@ class ZebraPuzzleMetric(evaluate.Metric):
 
     def _grade_part_pair(self, ref_parts="", pred_parts=""):
         num_correct = 0
-        ref_parts_split = ref_parts.split(",")[1:]  # Skip the house number
-        pred_parts_split = pred_parts.split(",")
+        ref_parts_split = (
+            ref_parts.split(",")[1:] if ref_parts is not None else []
+        )  # Skip the house number
+        pred_parts_split = pred_parts.split(",") if pred_parts is not None else []
         for ref_part in ref_parts_split:
             detail = ref_part.split("is ")[1]
             for pred_part in pred_parts_split:
@@ -95,6 +97,7 @@ class ZebraPuzzleMetric(evaluate.Metric):
 
             # Match each part of the reference with a part of the prediction based on house number
             part_pairs = self._match_parts(ref_parts, pred_parts)
+            print(f"part pairs: {part_pairs}")
 
             for house_num, parts in part_pairs.items():
                 ref_parts = parts["ref"]
