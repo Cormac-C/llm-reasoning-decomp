@@ -243,17 +243,17 @@ def eval_model_zebra_no_trainer(
         try:
             # Forward pass
             with torch.no_grad():
-                # model_inputs = {
-                #     "input_ids": batch["input_ids"].to(device),
-                #     "attention_mask": batch["attention_mask"].to(device),
-                # }
                 model_inputs = {
-                    k: v.to(device, non_blocking=True)
-                    for k, v in batch.items()
-                    if isinstance(v, torch.Tensor)
+                    "input_ids": batch["input_ids"].to(device),
+                    "attention_mask": batch["attention_mask"].to(device),
                 }
+                # model_inputs = {
+                #     k: v.to(device, non_blocking=True)
+                #     for k, v in batch.items()
+                #     if isinstance(v, torch.Tensor)
+                # }
 
-                outputs = model(**model_inputs)
+                outputs = model(**model_inputs, max_new_tokens=max_length)
                 logits = outputs.logits
 
             # # Postprocess logits
