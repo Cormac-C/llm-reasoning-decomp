@@ -15,7 +15,7 @@ if module_path not in sys.path:
 
 from data.zebra import Zebra
 from data.format import chat_format_qa_instance, lm_format_qa_instance
-from evals.zebra_eval import eval_model_zebra, eval_model_zebra_no_trainer
+from evals.zebra_eval import eval_model_zebra
 
 
 # Load environment variables
@@ -81,10 +81,6 @@ dataset = dataset["test"]
 print(f"Loaded dataset: {len(dataset)} examples")
 
 metrics = eval_model_zebra(model=peft_model, eval_dataset=dataset, tokenizer=tokenizer)
-
-# metrics = eval_model_zebra_no_trainer(
-#     model=peft_model, eval_dataset=dataset, tokenizer=tokenizer, device=device
-# )
 
 print(metrics)
 

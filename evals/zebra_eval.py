@@ -6,7 +6,6 @@ import re
 import torch
 from typing import Dict
 import numpy as np
-import wandb
 
 
 class ZebraPuzzleMetric(evaluate.Metric):
@@ -107,7 +106,6 @@ class ZebraPuzzleMetric(evaluate.Metric):
                 iter_partial_correct += correct_subparts
                 iter_subparts += total_subparts
 
-            print(f"Partial correct: {iter_partial_correct}/{iter_subparts}")
             # Update totals
             num_subparts += iter_subparts
             if iter_subparts == iter_partial_correct:
@@ -130,16 +128,13 @@ def compute_zebra_metrics(predictions, references):
 
 def generate_compute_metrics_fn(tokenizer):
     def compute_zebra_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
-        print("Computing metrics")
         preds, labels = eval_preds
+
+        # Need to decode the predictions and labels, remove -100 as it is just padding
         preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
         labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
-        # Need to decode the predictions and labels
         preds_decoded = tokenizer.batch_decode(preds, skip_special_tokens=True)
         labels_decoded = tokenizer.batch_decode(labels, skip_special_tokens=True)
-
-        print(f"Preds: {preds_decoded}")
-        print(f"Labels: {labels_decoded}")
 
         return compute_zebra_metrics(preds_decoded, labels_decoded)
 
@@ -169,14 +164,13 @@ def eval_model_zebra(
     )
 
     # Limit eval dataset to 15 examples for debugging
+    # TODO: Remove this line
     eval_dataset = eval_dataset.select(range(15))
 
     eval_dataset = eval_dataset.map(
         lambda examples: tokenizer(examples[content_key]),
         batched=True,
     )
-
-    print("eval dataset prepped:", eval_dataset)
 
     training_args = SFTConfig(
         output_dir=save_dir,
@@ -187,8 +181,7 @@ def eval_model_zebra(
         per_device_eval_batch_size=2,
         eval_accumulation_steps=8,
         eval_strategy="steps",
-        label_names=["labels"],  # Not sure if this can solve compute_metrics error
-        # max_seq_length=1024,
+        label_names=["labels"],
     )
 
     trainer = SFTTrainer(
@@ -200,121 +193,6 @@ def eval_model_zebra(
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
-    print("Trainer created")
     eval_metrics = trainer.evaluate()
-
-    return eval_metrics
-
-
-def eval_model_zebra_no_trainer(
-    model: Model,
-    eval_dataset: Dataset,
-    tokenizer,
-    response_template="<|start_header_id|>assistant<|end_header_id|>",
-    content_key="formatted_text",
-    max_length=2000,
-    batch_size=1,
-    device="cuda",
-):
-    model.eval()
-    device = next(model.parameters()).device
-    print(f"Device: {device}")
-
-    # Warmup run
-    dummy_input = tokenizer("Warmup text", return_tensors="pt").to(device)
-    with torch.no_grad():
-        model(**dummy_input)
-
-    print("Warmed up model")
-
-    # Clear cache after warmup
-    torch.cuda.empty_cache() if torch.cuda.is_available() else None
-
-    eval_dataset = eval_dataset.map(
-        lambda examples: tokenizer(
-            examples[content_key],
-            padding="max_length",
-            truncation=True,
-            max_length=max_length,
-            return_tensors=None,
-        ),
-        batched=True,
-        remove_columns=[content_key],
-    )
-
-    # Create data loader
-    collator = DataCollatorForCompletionOnlyLM(
-        response_template=response_template, tokenizer=tokenizer, mlm=False
-    )
-    eval_dataloader = torch.utils.data.DataLoader(
-        eval_dataset,
-        collate_fn=collator,
-        batch_size=batch_size,
-    )
-
-    # Initialize metric
-    metric = ZebraPuzzleMetric()
-
-    # Initialize variables
-    predictions = []
-    references = []
-
-    if torch.cuda.is_available():
-        print(f"Initial GPU memory: {torch.cuda.memory_allocated()/1024**2:.2f} MB")
-
-    # Iterate over the dataset
-    for batch_idx, batch in enumerate(eval_dataloader):
-        try:
-            # Forward pass
-            with torch.no_grad():
-                model_inputs = {
-                    "input_ids": batch["input_ids"].to(device),
-                    "attention_mask": batch["attention_mask"].to(device),
-                }
-                # model_inputs = {
-                #     k: v.to(device, non_blocking=True)
-                #     for k, v in batch.items()
-                #     if isinstance(v, torch.Tensor)
-                # }
-
-                outputs = model.generate(
-                    **model_inputs,
-                    max_new_tokens=max_length,
-                    pad_token_id=tokenizer.pad_token_id,
-                    eos_token_id=tokenizer.eos_token_id,
-                    do_sample=False,  # Deterministic generation
-                    num_beams=1,  # Simple greedy decoding
-                )
-                # logits = outputs.logits[0].argmax(dim=-1)
-            print(f"Generated shape: {outputs.shape}")
-            # # Postprocess logits
-            # logits = preprocess_logits_for_metrics(logits, batch["labels"])
-
-            # Decode logits
-            pred = tokenizer.batch_decode(outputs, skip_special_tokens=True)
-            ref = tokenizer.batch_decode(batch["labels"], skip_special_tokens=True)
-            print("decoded")
-            # Store predictions and references
-            predictions.extend(pred)
-            references.extend(ref)
-
-            print(f"Prediction: {pred}")
-            print(f"Reference: {ref}")
-
-            del outputs
-            torch.cuda.empty_cache()
-
-            if batch_idx % 10 == 0:
-                print(f"Processed {batch_idx} batches")
-                if torch.cuda.is_available():
-                    print(f"GPU memory: {torch.cuda.memory_allocated()/1024**2:.2f} MB")
-
-        except Exception as e:
-            print(f"Error at batch {batch_idx}: {e}")
-            torch.cuda.empty_cache()
-            continue
-
-    # Compute metrics
-    eval_metrics = metric.compute(predictions=predictions, references=references)
 
     return eval_metrics
