@@ -167,7 +167,8 @@ def eval_model_zebra(
         eval_packing=False,
         per_device_eval_batch_size=4,
         eval_accumulation_steps=16,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
+        label_names=["labels"],  # Not sure if this can solve compute_metrics error
     )
 
     trainer = SFTTrainer(
@@ -179,6 +180,9 @@ def eval_model_zebra(
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
+
+    trainer.can_return_loss = True
+
     eval_metrics = trainer.evaluate()
 
     return eval_metrics
