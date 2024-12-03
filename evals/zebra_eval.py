@@ -188,7 +188,7 @@ def eval_model_zebra_no_trainer(
     tokenizer,
     response_template="<|start_header_id|>assistant<|end_header_id|>",
     content_key="formatted_text",
-    max_length=512,
+    max_length=8000,
     batch_size=2,
     device="cuda",
 ):
