@@ -68,7 +68,7 @@ class ZebraPuzzleMetric(evaluate.Metric):
                     part_pairs[house_num]["pred"] = pred_part
         return part_pairs
 
-    def _grade_part_pair(self, ref_parts, pred_parts):
+    def _grade_part_pair(self, ref_parts="", pred_parts=""):
         num_correct = 0
         ref_parts_split = ref_parts.split(",")[1:]  # Skip the house number
         pred_parts_split = pred_parts.split(",")
@@ -134,7 +134,8 @@ def generate_compute_metrics_fn(tokenizer):
         labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
         preds_decoded = tokenizer.batch_decode(preds, skip_special_tokens=True)
         labels_decoded = tokenizer.batch_decode(labels, skip_special_tokens=True)
-
+        print(f"pred decoded {preds_decoded}")
+        print(f"label decoded {labels_decoded}")
         return compute_zebra_metrics(preds_decoded, labels_decoded)
 
     return compute_zebra_metrics_for_trainer
