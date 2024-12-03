@@ -188,17 +188,30 @@ def eval_model_zebra_no_trainer(
     tokenizer,
     response_template="<|start_header_id|>assistant<|end_header_id|>",
     content_key="formatted_text",
+    max_length=512,
+    batch_size=2,
     device="cuda",
 ):
-    BATCH_SIZE = 1
-
     model.eval()
+    device = next(model.parameters()).device
+    print(f"Device: {device}")
+
+    # Warmup run
+    dummy_input = tokenizer("Warmup text", return_tensors="pt").to(device)
+    with torch.no_grad():
+        model(**dummy_input)
+
+    print("Warmed up model")
+
+    # Clear cache after warmup
+    torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
     eval_dataset = eval_dataset.map(
         lambda examples: tokenizer(
             examples[content_key],
             padding="max_length",
             truncation=True,
+            max_length=max_length,
             return_tensors=None,
         ),
         batched=True,
@@ -207,12 +220,12 @@ def eval_model_zebra_no_trainer(
 
     # Create data loader
     collator = DataCollatorForCompletionOnlyLM(
-        response_template=response_template, tokenizer=tokenizer
+        response_template=response_template, tokenizer=tokenizer, mlm=False
     )
     eval_dataloader = torch.utils.data.DataLoader(
         eval_dataset,
         collate_fn=collator,
-        batch_size=BATCH_SIZE,
+        batch_size=batch_size,
     )
 
     # Initialize metric
@@ -230,24 +243,29 @@ def eval_model_zebra_no_trainer(
         try:
             # Forward pass
             with torch.no_grad():
+                # model_inputs = {
+                #     "input_ids": batch["input_ids"].to(device),
+                #     "attention_mask": batch["attention_mask"].to(device),
+                # }
                 model_inputs = {
-                    "input_ids": batch["input_ids"].to(device),
-                    "attention_mask": batch["attention_mask"].to(device),
+                    k: v.to(device, non_blocking=True)
+                    for k, v in batch.items()
+                    if isinstance(v, torch.Tensor)
                 }
 
                 outputs = model(**model_inputs)
                 logits = outputs.logits
 
-            # Postprocess logits
-            logits = preprocess_logits_for_metrics(logits, batch["labels"])
+            # # Postprocess logits
+            # logits = preprocess_logits_for_metrics(logits, batch["labels"])
 
             # Decode logits
-            pred = tokenizer.decode(logits[0].argmax(dim=-1))
+            pred = tokenizer.batch_decode(outputs.logits, skip_special_tokens=True)
             ref = batch["labels"][0]
 
             # Store predictions and references
-            predictions.append(pred)
-            references.append(ref)
+            predictions.extend(pred)
+            references.extend(ref)
 
             print(f"Prediction: {pred}")
             print(f"Reference: {ref}")
