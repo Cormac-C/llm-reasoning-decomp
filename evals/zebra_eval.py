@@ -169,7 +169,7 @@ def eval_model_zebra(
         run_name=run_name,
         eval_packing=False,
         per_device_eval_batch_size=2,
-        eval_accumulation_steps=16,
+        eval_accumulation_steps=8,
         eval_strategy="steps",
         # label_names=[
         #     "formatted_text"
