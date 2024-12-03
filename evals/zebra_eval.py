@@ -174,7 +174,7 @@ def eval_model_zebra(
         # label_names=[
         #     "formatted_text"
         # ],  # Not sure if this can solve compute_metrics error
-        max_seq_length=1024,
+        # max_seq_length=1024,
     )
 
     trainer = SFTTrainer(
@@ -186,8 +186,6 @@ def eval_model_zebra(
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
-
-    trainer.can_return_loss = True
 
     eval_metrics = trainer.evaluate()
 
