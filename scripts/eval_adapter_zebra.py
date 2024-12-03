@@ -30,6 +30,8 @@ device = (
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
+wandb.init(project="Decomp", run="zebra-1b-eval")
+
 ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-1b/llama-1b-instruct-zebra"
 
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
@@ -75,6 +77,8 @@ dataset = load_prep_zebra_dataset(
 )
 
 dataset = dataset["test"]
+
+print(f"Loaded dataset: {len(dataset)} examples")
 
 metrics = eval_model_zebra(model=peft_model, eval_dataset=dataset, tokenizer=tokenizer)
 

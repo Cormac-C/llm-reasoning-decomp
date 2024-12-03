@@ -159,6 +159,8 @@ def eval_model_zebra(
         lambda examples: tokenizer(examples[content_key]), batched=True
     )
 
+    print("eval dataset prepped:", eval_dataset)
+
     training_args = SFTConfig(
         output_dir=save_dir,
         dataset_batch_size=1,
@@ -179,6 +181,7 @@ def eval_model_zebra(
         compute_metrics=compute_zebra_metrics_for_trainer,
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
+        max_seq_length=2048,
     )
 
     trainer.can_return_loss = True
