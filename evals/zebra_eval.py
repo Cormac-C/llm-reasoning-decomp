@@ -222,6 +222,9 @@ def eval_model_zebra_no_trainer(
     predictions = []
     references = []
 
+    if torch.cuda.is_available():
+        print(f"Initial GPU memory: {torch.cuda.memory_allocated()/1024**2:.2f} MB")
+
     # Iterate over the dataset
     for batch_idx, batch in enumerate(eval_dataloader):
         try:
