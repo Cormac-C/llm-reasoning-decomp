@@ -156,9 +156,7 @@ def eval_model_zebra(
     )
 
     eval_dataset = eval_dataset.map(
-        lambda examples: tokenizer(
-            examples[content_key], padding=True, truncation=True, return_tensors="pt"
-        ),
+        lambda examples: tokenizer(examples[content_key]),
         batched=True,
     )
 
@@ -173,9 +171,9 @@ def eval_model_zebra(
         per_device_eval_batch_size=2,
         eval_accumulation_steps=16,
         eval_strategy="steps",
-        label_names=[
-            "formatted_text"
-        ],  # Not sure if this can solve compute_metrics error
+        # label_names=[
+        #     "formatted_text"
+        # ],  # Not sure if this can solve compute_metrics error
         max_seq_length=1024,
     )
 
