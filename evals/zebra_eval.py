@@ -129,7 +129,9 @@ def compute_zebra_metrics(predictions, references):
 def compute_zebra_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
     print("Computing metrics")
     preds, labels = eval_preds
-    preds = [pred["generated_text"] for pred in preds]
+    print(f"Preds: {preds}")
+    print(f"Labels: {labels}")
+    # preds = [pred["generated_text"] for pred in preds]
     return compute_zebra_metrics(preds, labels)
 
 
