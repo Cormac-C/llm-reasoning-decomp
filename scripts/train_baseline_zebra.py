@@ -150,7 +150,10 @@ clear_gpu_memory(trained_model)
 # Evaluate the trained model
 
 metrics = eval_model_zebra_no_trainer(
-    model=trained_model, eval_dataset=dataset["test"], tokenizer=tokenizer
+    model=trained_model,
+    eval_dataset=dataset["test"],
+    tokenizer=tokenizer,
+    device=device,
 )
 
 wandb.log(metrics)
