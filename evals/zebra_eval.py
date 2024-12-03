@@ -167,10 +167,13 @@ def eval_model_zebra(
         report_to="wandb",
         run_name=run_name,
         eval_packing=False,
-        per_device_eval_batch_size=4,
+        per_device_eval_batch_size=2,
         eval_accumulation_steps=16,
         eval_strategy="steps",
-        label_names=["labels"],  # Not sure if this can solve compute_metrics error
+        label_names=[
+            "formatted_text"
+        ],  # Not sure if this can solve compute_metrics error
+        max_seq_length=1024,
     )
 
     trainer = SFTTrainer(
@@ -181,7 +184,6 @@ def eval_model_zebra(
         compute_metrics=compute_zebra_metrics_for_trainer,
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
-        max_seq_length=2048,
     )
 
     trainer.can_return_loss = True
