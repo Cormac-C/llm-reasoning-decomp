@@ -171,9 +171,9 @@ def eval_model_zebra(
         per_device_eval_batch_size=2,
         eval_accumulation_steps=8,
         eval_strategy="steps",
-        # label_names=[
-        #     "formatted_text"
-        # ],  # Not sure if this can solve compute_metrics error
+        label_names=[
+            "formatted_text"
+        ],  # Not sure if this can solve compute_metrics error
         # max_seq_length=1024,
     )
 
@@ -186,7 +186,7 @@ def eval_model_zebra(
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
-
+    print("Trainer created")
     eval_metrics = trainer.evaluate()
 
     return eval_metrics
