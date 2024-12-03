@@ -156,7 +156,10 @@ def eval_model_zebra(
     )
 
     eval_dataset = eval_dataset.map(
-        lambda examples: tokenizer(examples[content_key]), batched=True
+        lambda examples: tokenizer(
+            examples[content_key], padding=True, truncation=True, return_tensors="pt"
+        ),
+        batched=True,
     )
 
     print("eval dataset prepped:", eval_dataset)
