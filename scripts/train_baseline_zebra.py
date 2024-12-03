@@ -58,9 +58,13 @@ def get_sft_config(run_name=None):
         # Eval_strategy set to "no" temporarily cause of https://github.com/huggingface/transformers/issues/34701
         eval_strategy="steps",
         eval_steps=100,
+        eval_packing=False,
+        per_device_eval_batch_size=8,
+        eval_accumulation_steps=1,
         report_to="wandb",
         logging_steps=10,
         dataset_batch_size=16,
+        label_names=["labels"],
     )
 
 
