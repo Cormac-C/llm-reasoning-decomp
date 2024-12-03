@@ -77,9 +77,7 @@ dataset = load_prep_zebra_dataset(
 dataset = dataset["test"]
 
 metrics = eval_model_zebra_no_trainer(
-    model=peft_model,
-    eval_dataset=dataset,
-    tokenizer=tokenizer,
+    model=peft_model, eval_dataset=dataset, tokenizer=tokenizer, device=device
 )
 
 print(metrics)

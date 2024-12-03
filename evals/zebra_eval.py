@@ -188,6 +188,7 @@ def eval_model_zebra_no_trainer(
     tokenizer,
     response_template="<|start_header_id|>assistant<|end_header_id|>",
     content_key="formatted_text",
+    device="gpu",
 ):
     BATCH_SIZE = 1
 
@@ -214,8 +215,6 @@ def eval_model_zebra_no_trainer(
         batch_size=BATCH_SIZE,
     )
 
-    first_element = next(iter(eval_dataloader))
-
     # Initialize metric
     metric = ZebraPuzzleMetric()
 
@@ -228,12 +227,9 @@ def eval_model_zebra_no_trainer(
         # Forward pass
         with torch.no_grad():
             model_inputs = {
-                "input_ids": batch["input_ids"],
-                "attention_mask": batch["attention_mask"],
+                "input_ids": batch["input_ids"].to(device),
+                "attention_mask": batch["attention_mask"].to(device),
             }
-
-            print(f"batch device {batch.get_device()}")
-            print(f"model device {model.get_device()}")
 
             outputs = model(**model_inputs)
             logits = outputs.logits
