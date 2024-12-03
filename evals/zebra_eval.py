@@ -223,29 +223,44 @@ def eval_model_zebra_no_trainer(
     references = []
 
     # Iterate over the dataset
-    for batch in eval_dataloader:
-        # Forward pass
-        with torch.no_grad():
-            model_inputs = {
-                "input_ids": batch["input_ids"].to(device),
-                "attention_mask": batch["attention_mask"].to(device),
-            }
+    for batch_idx, batch in enumerate(eval_dataloader):
+        try:
+            # Forward pass
+            with torch.no_grad():
+                model_inputs = {
+                    "input_ids": batch["input_ids"].to(device),
+                    "attention_mask": batch["attention_mask"].to(device),
+                }
 
-            outputs = model(**model_inputs)
-            logits = outputs.logits
+                outputs = model(**model_inputs)
+                logits = outputs.logits
 
-        # Postprocess logits
-        logits = preprocess_logits_for_metrics(logits, batch["labels"])
+            # Postprocess logits
+            logits = preprocess_logits_for_metrics(logits, batch["labels"])
 
-        # Decode logits
-        pred = tokenizer.decode(logits[0].argmax(dim=-1))
+            # Decode logits
+            pred = tokenizer.decode(logits[0].argmax(dim=-1))
+            ref = batch["labels"][0]
 
-        print(f"Prediction: {pred}")
-        print(f"Reference: {batch['labels'][0]}")
+            # Store predictions and references
+            predictions.append(pred)
+            references.append(ref)
 
-        # Store predictions and references
-        predictions.append(pred)
-        references.append(batch["labels"][0])
+            print(f"Prediction: {pred}")
+            print(f"Reference: {ref}")
+
+            del outputs, logits
+            torch.cuda.empty_cache()
+
+            if batch_idx % 10 == 0:
+                print(f"Processed {batch_idx} batches")
+                if torch.cuda.is_available():
+                    print(f"GPU memory: {torch.cuda.memory_allocated()/1024**2:.2f} MB")
+
+        except Exception as e:
+            print(f"Error at batch {batch_idx}: {e}")
+            torch.cuda.empty_cache()
+            continue
 
     # Compute metrics
     eval_metrics = metric.compute(predictions=predictions, references=references)
