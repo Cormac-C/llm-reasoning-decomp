@@ -240,6 +240,9 @@ def eval_model_zebra_no_trainer(
         # Decode logits
         pred = tokenizer.decode(logits[0].argmax(dim=-1))
 
+        print(f"Prediction: {pred}")
+        print(f"Reference: {batch['labels'][0]}")
+
         # Store predictions and references
         predictions.append(pred)
         references.append(batch["labels"][0])
