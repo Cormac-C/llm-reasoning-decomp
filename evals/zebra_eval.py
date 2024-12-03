@@ -141,8 +141,6 @@ def generate_compute_metrics_fn(tokenizer):
         print(f"Preds: {preds_decoded}")
         print(f"Labels: {labels_decoded}")
 
-        wandb.log({"preds": preds_decoded, "labels": labels_decoded})
-
         return compute_zebra_metrics(preds_decoded, labels_decoded)
 
     return compute_zebra_metrics_for_trainer
@@ -170,8 +168,8 @@ def eval_model_zebra(
         response_template=response_template, tokenizer=tokenizer
     )
 
-    # Limit eval dataset to 10 examples for debugging
-    eval_dataset = eval_dataset.select(range(10))
+    # Limit eval dataset to 15 examples for debugging
+    eval_dataset = eval_dataset.select(range(15))
 
     eval_dataset = eval_dataset.map(
         lambda examples: tokenizer(examples[content_key]),
