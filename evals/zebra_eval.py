@@ -1,9 +1,10 @@
-from transformers import AutoModelForCausalLM as Model
+from transformers import AutoModelForCausalLM as Model, EvalPrediction
 from datasets import Dataset
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer, SFTConfig
 import evaluate
 import re
-import torch
+from typing import Dict
+import numpy as np
 
 
 class ZebraPuzzleMetric(evaluate.Metric):
@@ -67,10 +68,12 @@ class ZebraPuzzleMetric(evaluate.Metric):
                     part_pairs[house_num]["pred"] = pred_part
         return part_pairs
 
-    def _grade_part_pair(self, ref_parts, pred_parts):
+    def _grade_part_pair(self, ref_parts="", pred_parts=""):
         num_correct = 0
-        ref_parts_split = ref_parts.split(",")[1:]  # Skip the house number
-        pred_parts_split = pred_parts.split(",")
+        ref_parts_split = (
+            ref_parts.split(",")[1:] if ref_parts is not None else []
+        )  # Skip the house number
+        pred_parts_split = pred_parts.split(",") if pred_parts is not None else []
         for ref_part in ref_parts_split:
             detail = ref_part.split("is ")[1]
             for pred_part in pred_parts_split:
@@ -94,6 +97,7 @@ class ZebraPuzzleMetric(evaluate.Metric):
 
             # Match each part of the reference with a part of the prediction based on house number
             part_pairs = self._match_parts(ref_parts, pred_parts)
+            print(f"part pairs: {part_pairs}")
 
             for house_num, parts in part_pairs.items():
                 ref_parts = parts["ref"]
@@ -104,7 +108,6 @@ class ZebraPuzzleMetric(evaluate.Metric):
                 iter_partial_correct += correct_subparts
                 iter_subparts += total_subparts
 
-            print(f"Partial correct: {iter_partial_correct}/{iter_subparts}")
             # Update totals
             num_subparts += iter_subparts
             if iter_subparts == iter_partial_correct:
@@ -125,16 +128,26 @@ def compute_zebra_metrics(predictions, references):
     return {f"eval_{k}": v for k, v in results.items()}
 
 
-def compute_zebra_metrics_for_trainer(eval_preds):
-    preds, labels = eval_preds
-    preds = [pred["generated_text"] for pred in preds]
-    return compute_zebra_metrics(preds, labels)
+def generate_compute_metrics_fn(tokenizer):
+    def compute_zebra_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
+        preds, labels = eval_preds
+
+        # Need to decode the predictions and labels, remove -100 as it is just padding
+        preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
+        labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
+        preds_decoded = tokenizer.batch_decode(preds, skip_special_tokens=True)
+        labels_decoded = tokenizer.batch_decode(labels, skip_special_tokens=True)
+        print(f"pred decoded {preds_decoded}")
+        print(f"label decoded {labels_decoded}")
+        return compute_zebra_metrics(preds_decoded, labels_decoded)
+
+    return compute_zebra_metrics_for_trainer
 
 
 def preprocess_logits_for_metrics(logits, labels):
     if isinstance(logits, tuple):
         logits = logits[0]
-    return logits
+    return logits.argmax(dim=-1)
 
 
 def eval_model_zebra(
@@ -154,7 +167,8 @@ def eval_model_zebra(
     )
 
     eval_dataset = eval_dataset.map(
-        lambda examples: tokenizer(examples[content_key]), batched=True
+        lambda examples: tokenizer(examples[content_key]),
+        batched=True,
     )
 
     training_args = SFTConfig(
@@ -163,9 +177,10 @@ def eval_model_zebra(
         report_to="wandb",
         run_name=run_name,
         eval_packing=False,
-        per_device_eval_batch_size=4,
-        eval_accumulation_steps=16,
-        evaluation_strategy="steps",
+        per_device_eval_batch_size=8,
+        eval_accumulation_steps=1,
+        eval_strategy="steps",
+        label_names=["labels"],
     )
 
     trainer = SFTTrainer(
@@ -173,79 +188,10 @@ def eval_model_zebra(
         eval_dataset=eval_dataset,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
-        compute_metrics=compute_zebra_metrics_for_trainer,
+        compute_metrics=generate_compute_metrics_fn(tokenizer),
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
     eval_metrics = trainer.evaluate()
-
-    return eval_metrics
-
-
-def eval_model_zebra_no_trainer(
-    model: Model,
-    eval_dataset: Dataset,
-    tokenizer,
-    response_template="<|start_header_id|>assistant<|end_header_id|>",
-    content_key="formated_text",
-):
-    BATCH_SIZE = 1
-
-    model.eval()
-
-    eval_dataset = eval_dataset.map(
-        lambda examples: tokenizer(
-            examples[content_key],
-            padding="max_length",
-            truncation=True,
-            return_tensors=None,
-        ),
-        batched=True,
-        remove_columns=[content_key],
-    )
-
-    # Create data loader
-    collator = DataCollatorForCompletionOnlyLM(
-        response_template=response_template, tokenizer=tokenizer
-    )
-    eval_dataloader = torch.utils.data.DataLoader(
-        eval_dataset,
-        collate_fn=collator,
-        batch_size=BATCH_SIZE,
-    )
-
-    first_element = next(iter(eval_dataloader))
-
-    # Initialize metric
-    metric = ZebraPuzzleMetric()
-
-    # Initialize variables
-    predictions = []
-    references = []
-
-    # Iterate over the dataset
-    for batch in eval_dataloader:
-        # Forward pass
-        with torch.no_grad():
-            model_inputs = {
-                "input_ids": batch["input_ids"],
-                "attention_mask": batch["attention_mask"],
-            }
-
-            outputs = model(**model_inputs)
-            logits = outputs.logits
-
-        # Postprocess logits
-        logits = preprocess_logits_for_metrics(logits, batch["labels"])
-
-        # Decode logits
-        pred = tokenizer.decode(logits[0].argmax(dim=-1))
-
-        # Store predictions and references
-        predictions.append(pred)
-        references.append(batch["labels"][0])
-
-    # Compute metrics
-    eval_metrics = metric.compute(predictions=predictions, references=references)
 
     return eval_metrics

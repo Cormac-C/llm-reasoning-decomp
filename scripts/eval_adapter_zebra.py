@@ -30,7 +30,9 @@ device = (
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-1b"
+wandb.init(project="Decomp")
+
+ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-1b/llama-1b-instruct-zebra"
 
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 
@@ -57,9 +59,15 @@ tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
     token=os.environ["HF_TOKEN"],
+    torch_dtype="auto",
+    device_map="auto",
 )
 
 peft_model = PeftModel.from_pretrained(model, ADAPTER_DIR, "zebra")
+peft_model.to(device)
+
+print(f"Loaded model: {MODEL_NAME}")
+print(f"Model precision: {model.config.torch_dtype}")
 
 peft_model.eval()
 
@@ -68,10 +76,12 @@ dataset = load_prep_zebra_dataset(
     tokenizer, instruction_tuned=True, test_split_size=0.2
 )
 
-metrics = eval_model_zebra(
-    model=peft_model,
-    eval_dataset=dataset["test"],
-    tokenizer=tokenizer,
-)
+dataset = dataset["test"]
+
+print(f"Loaded dataset: {len(dataset)} examples")
+
+metrics = eval_model_zebra(model=peft_model, eval_dataset=dataset, tokenizer=tokenizer)
+
+print(metrics)
 
 wandb.log(metrics)
