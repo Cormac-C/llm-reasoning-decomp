@@ -3,7 +3,6 @@ from datasets import Dataset
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer, SFTConfig
 import evaluate
 import re
-import torch
 from typing import Dict
 import numpy as np
 

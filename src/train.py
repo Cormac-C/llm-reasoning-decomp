@@ -71,6 +71,7 @@ def sft_train_lora(
     training_args=default_sft_config,
     save_dir="/tmp",
     content_key="formatted_text",
+    compute_metrics=None,
 ):
     peft_model = get_peft_model(
         model=base_model, peft_config=lora_config, adapter_name=adapter_name
@@ -99,6 +100,7 @@ def sft_train_lora(
         args=training_args,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
+        compute_metrics=compute_metrics,
     )
 
     trainer.train()

@@ -18,7 +18,7 @@ from src.train import sft_train_lora
 from src.model import identify_target_modules
 from data.zebra import Zebra
 from data.format import chat_format_qa_instance, lm_format_qa_instance
-from evals.zebra_eval import eval_model_zebra
+from evals.zebra_eval import eval_model_zebra, generate_compute_metrics_fn
 
 # Load environment variables
 load_dotenv()
@@ -56,7 +56,8 @@ def get_sft_config(run_name=None):
         output_dir="/tmp",
         run_name=run_name,
         # Eval_strategy set to "no" temporarily cause of https://github.com/huggingface/transformers/issues/34701
-        eval_strategy="no",
+        eval_strategy="steps",
+        eval_steps=100,
         report_to="wandb",
         logging_steps=10,
         dataset_batch_size=16,
@@ -128,6 +129,7 @@ def train_zebra_baseline(
             lora_config=lora_config,
             training_args=training_config,
             save_dir=save_dir,
+            compute_metrics=generate_compute_metrics_fn(tokenizer),
         ),
         dataset,
     )
@@ -138,7 +140,7 @@ save_dir = BASE_DIR + RUN_NAME
 tokenizer, trained_model, dataset = train_zebra_baseline(
     instruction_tuned=True,
     model_name=MODEL_NAME,
-    test_split_size=0.15,
+    test_split_size=0.2,
     save_dir=save_dir,
     run_name=RUN_NAME,
 )
@@ -146,9 +148,7 @@ tokenizer, trained_model, dataset = train_zebra_baseline(
 # Clear GPU cache except for model and dataset
 clear_gpu_memory(trained_model)
 
-
 # Evaluate the trained model
-
 metrics = eval_model_zebra(
     model=trained_model, eval_dataset=dataset["test"], tokenizer=tokenizer
 )
