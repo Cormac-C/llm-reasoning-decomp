@@ -6,6 +6,7 @@ import re
 import torch
 from typing import Dict
 import numpy as np
+import wandb
 
 
 class ZebraPuzzleMetric(evaluate.Metric):
@@ -131,13 +132,16 @@ def generate_compute_metrics_fn(tokenizer):
     def compute_zebra_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
         print("Computing metrics")
         preds, labels = eval_preds
-        print(f"Preds: {preds}")
-        print(f"Labels: {labels}")
         preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
         labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
         # Need to decode the predictions and labels
         preds_decoded = tokenizer.batch_decode(preds, skip_special_tokens=True)
         labels_decoded = tokenizer.batch_decode(labels, skip_special_tokens=True)
+
+        print(f"Preds: {preds_decoded}")
+        print(f"Labels: {labels_decoded}")
+
+        wandb.log({"preds": preds_decoded, "labels": labels_decoded})
 
         return compute_zebra_metrics(preds_decoded, labels_decoded)
 
@@ -166,8 +170,8 @@ def eval_model_zebra(
         response_template=response_template, tokenizer=tokenizer
     )
 
-    # Limit eval dataset to 5 examples for debugging
-    eval_dataset = eval_dataset.select(range(5))
+    # Limit eval dataset to 10 examples for debugging
+    eval_dataset = eval_dataset.select(range(10))
 
     eval_dataset = eval_dataset.map(
         lambda examples: tokenizer(examples[content_key]),
