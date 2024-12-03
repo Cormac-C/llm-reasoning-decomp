@@ -126,19 +126,25 @@ def compute_zebra_metrics(predictions, references):
     return {f"eval_{k}": v for k, v in results.items()}
 
 
-def compute_zebra_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
-    print("Computing metrics")
-    preds, labels = eval_preds
-    print(f"Preds: {preds}")
-    print(f"Labels: {labels}")
-    # preds = [pred["generated_text"] for pred in preds]
-    return compute_zebra_metrics(preds, labels)
+def generate_compute_metrics_fn(tokenizer):
+    def compute_zebra_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
+        print("Computing metrics")
+        preds, labels = eval_preds
+        print(f"Preds: {preds}")
+        print(f"Labels: {labels}")
+        # Need to decode the predictions and labels
+        preds_decoded = tokenizer.batch_decode(preds, skip_special_tokens=True)
+        labels_decoded = tokenizer.batch_decode(labels, skip_special_tokens=True)
+
+        return compute_zebra_metrics(preds_decoded, labels_decoded)
+
+    return compute_zebra_metrics_for_trainer
 
 
 def preprocess_logits_for_metrics(logits, labels):
     if isinstance(logits, tuple):
         logits = logits[0]
-    return logits
+    return logits.argmax(dim=-1)
 
 
 def eval_model_zebra(
@@ -185,7 +191,7 @@ def eval_model_zebra(
         eval_dataset=eval_dataset,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
-        compute_metrics=compute_zebra_metrics_for_trainer,
+        compute_metrics=generate_compute_metrics_fn(tokenizer),
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
