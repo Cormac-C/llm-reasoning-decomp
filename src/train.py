@@ -2,7 +2,6 @@ from peft import LoraConfig, get_peft_model
 from transformers import Trainer, AutoModelForCausalLM as Model
 from datasets import Dataset
 from trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
-import wandb
 import os
 
 
@@ -72,6 +71,7 @@ def sft_train_lora(
     save_dir="/tmp",
     content_key="formatted_text",
     compute_metrics=None,
+    preprocess_logits_for_metrics=None,
 ):
     peft_model = get_peft_model(
         model=base_model, peft_config=lora_config, adapter_name=adapter_name
@@ -101,6 +101,7 @@ def sft_train_lora(
         formatting_func=formatting_prompts_func,
         data_collator=collator,
         compute_metrics=compute_metrics,
+        preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
 
     trainer.train()

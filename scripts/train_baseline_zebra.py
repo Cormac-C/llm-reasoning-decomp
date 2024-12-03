@@ -18,7 +18,11 @@ from src.train import sft_train_lora
 from src.model import identify_target_modules
 from data.zebra import Zebra
 from data.format import chat_format_qa_instance, lm_format_qa_instance
-from evals.zebra_eval import eval_model_zebra, generate_compute_metrics_fn
+from evals.zebra_eval import (
+    eval_model_zebra,
+    generate_compute_metrics_fn,
+    preprocess_logits_for_metrics,
+)
 
 # Load environment variables
 load_dotenv()
@@ -59,7 +63,7 @@ def get_sft_config(run_name=None):
         eval_strategy="steps",
         eval_steps=100,
         eval_packing=False,
-        per_device_eval_batch_size=8,
+        per_device_eval_batch_size=4,
         eval_accumulation_steps=1,
         report_to="wandb",
         logging_steps=10,
@@ -134,6 +138,7 @@ def train_zebra_baseline(
             training_args=training_config,
             save_dir=save_dir,
             compute_metrics=generate_compute_metrics_fn(tokenizer),
+            preprocess_logits_for_metrics=preprocess_logits_for_metrics,
         ),
         dataset,
     )
