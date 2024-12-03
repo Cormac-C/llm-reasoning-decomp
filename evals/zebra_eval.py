@@ -165,7 +165,7 @@ def eval_model_zebra(
 
     # Limit eval dataset to 15 examples for debugging
     # TODO: Remove this line
-    eval_dataset = eval_dataset.select(range(15))
+    # eval_dataset = eval_dataset.select(range(15))
 
     eval_dataset = eval_dataset.map(
         lambda examples: tokenizer(examples[content_key]),
@@ -178,8 +178,8 @@ def eval_model_zebra(
         report_to="wandb",
         run_name=run_name,
         eval_packing=False,
-        per_device_eval_batch_size=2,
-        eval_accumulation_steps=8,
+        per_device_eval_batch_size=8,
+        eval_accumulation_steps=1,
         eval_strategy="steps",
         label_names=["labels"],
     )
