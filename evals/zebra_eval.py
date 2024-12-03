@@ -253,15 +253,22 @@ def eval_model_zebra_no_trainer(
                 #     if isinstance(v, torch.Tensor)
                 # }
 
-                outputs = model(**model_inputs, max_new_tokens=max_length)
-                logits = outputs.logits[0]
-            print(f"Logits shape: {logits.shape}")
+                outputs = model.generate(
+                    **model_inputs,
+                    max_new_tokens=max_length,
+                    pad_token_id=tokenizer.pad_token_id,
+                    eos_token_id=tokenizer.eos_token_id,
+                    do_sample=False,  # Deterministic generation
+                    num_beams=1,  # Simple greedy decoding
+                )
+                # logits = outputs.logits[0].argmax(dim=-1)
+            print(f"Generated shape: {outputs.shape}")
             # # Postprocess logits
             # logits = preprocess_logits_for_metrics(logits, batch["labels"])
 
             # Decode logits
-            pred = tokenizer.batch_decode(logits, skip_special_tokens=True)
-            ref = batch["labels"][0]
+            pred = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+            ref = tokenizer.batch_decode(batch["labels"], skip_special_tokens=True)
             print("decoded")
             # Store predictions and references
             predictions.extend(pred)
@@ -270,7 +277,7 @@ def eval_model_zebra_no_trainer(
             print(f"Prediction: {pred}")
             print(f"Reference: {ref}")
 
-            del outputs, logits
+            del outputs
             torch.cuda.empty_cache()
 
             if batch_idx % 10 == 0:
