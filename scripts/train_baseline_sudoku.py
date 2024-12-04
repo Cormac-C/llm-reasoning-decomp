@@ -148,7 +148,7 @@ def train_sudoku_baseline(
             lora_config=lora_config,
             training_args=training_config,
             save_dir=save_dir,
-            compute_metrics=generate_compute_metrics_fn(tokenizer)(num_clues_list),
+            compute_metrics=generate_compute_metrics_fn(tokenizer, num_clues_list),
             preprocess_logits_for_metrics=preprocess_logits_for_metrics,
         ),
         dataset,

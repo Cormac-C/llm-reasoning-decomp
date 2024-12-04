@@ -73,8 +73,8 @@ def compute_sudoku_metrics(predictions, references, num_clues_list):
     return {f"eval_{k}": v for k, v in metric_output.items()}
 
 
-def generate_compute_metrics_fn(tokenizer):
-    def compute_sudoku_metrics_for_trainer(eval_preds: EvalPrediction, num_clues_list: list) -> Dict:
+def generate_compute_metrics_fn(tokenizer, num_clues_list):
+    def compute_sudoku_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
         preds, labels = eval_preds
 
         preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
@@ -131,7 +131,7 @@ def eval_model_sudoku(
         eval_dataset=eval_dataset,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
-        compute_metrics=generate_compute_metrics_fn(tokenizer)(num_clues_list),
+        compute_metrics=generate_compute_metrics_fn(tokenizer, num_clues_list),
         args=training_args,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
