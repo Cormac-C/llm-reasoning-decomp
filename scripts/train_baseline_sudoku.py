@@ -163,6 +163,7 @@ try:
         run_name=RUN_NAME
     )
 except Exception as e:
+    print("Error in training: {}\n".format(e))
     print(f"Encountered exception: {e}")
     pass
 
