@@ -103,9 +103,16 @@ dataset = load_prep_sudoku_dataset(
 
 dataset = dataset["test"]
 
+num_clues_list = dataset["num_clues"]
+
 print(f"Loaded dataset: {len(dataset)} examples")
 
-metrics = eval_model_sudoku(model=peft_model, eval_dataset=dataset, tokenizer=tokenizer)
+metrics = eval_model_sudoku(
+    model=peft_model,
+    eval_dataset=dataset,
+    tokenizer=tokenizer,
+    num_clues_list=num_clues_list,
+)
 
 print(metrics)
 
