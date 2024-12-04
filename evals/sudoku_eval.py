@@ -4,12 +4,14 @@ from trl import DataCollatorForCompletionOnlyLM, SFTTrainer, SFTConfig
 import numpy as np
 from typing import Dict
 import evaluate
+import re
 
 
 class SudokuPuzzleMetric(evaluate.Metric):
     def __init__(self):
         self.strict_accuracy = 0.0
         self.partial_accuracy = 0.0
+        self._puzzle_regex = re.compile(r"(\d{81})")
 
     def compute(self, predictions, references):
         strict_correct = 0
@@ -18,9 +20,16 @@ class SudokuPuzzleMetric(evaluate.Metric):
         num_subparts = 0
 
         for pred, ref in zip(predictions, references):
+            # Filter for just the puzzle, search for 81 digits
+            ref_filtered = self._puzzle_regex.search(ref).group(1)
+            pred_filtered = self._puzzle_regex.search(pred).group(1)
+
+            if len(ref_filtered) != 81 or len(pred_filtered) != 81:
+                continue
+
             # Split string by character
-            ref_parts = list(ref)
-            pred_parts = list(pred)
+            ref_parts = list(ref_filtered)
+            pred_parts = list(pred_filtered)
 
             print("ref_parts: ", ref_parts)
             print("pred_parts: ", pred_parts)
@@ -54,6 +63,7 @@ def compute_sudoku_metrics(predictions, references):
     metric_output = metric.compute(predictions=predictions, references=references)
     return {f"eval_{k}": v for k, v in metric_output.items()}
 
+
 def generate_compute_metrics_fn(tokenizer):
     def compute_sudoku_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
         preds, labels = eval_preds
@@ -65,7 +75,7 @@ def generate_compute_metrics_fn(tokenizer):
         print(f"pred decoded {preds_decoded}")
         print(f"label decoded {labels_decoded}")
         return compute_sudoku_metrics(preds_decoded, labels_decoded)
-    
+
     return compute_sudoku_metrics_for_trainer
 
 
@@ -93,7 +103,7 @@ def eval_model_sudoku(
     eval_dataset = eval_dataset.map(
         lambda examples: tokenizer(examples[content_key]), batched=True
     )
-    
+
     training_args = SFTConfig(
         output_dir=save_dir,
         dataset_batch_size=1,
@@ -113,9 +123,9 @@ def eval_model_sudoku(
         data_collator=collator,
         compute_metrics=generate_compute_metrics_fn(tokenizer),
         args=training_args,
-        preprocess_logits_for_metrics=preprocess_logits_for_metrics
+        preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
-    
+
     eval_metrics = trainer.evaluate()
 
     return eval_metrics
