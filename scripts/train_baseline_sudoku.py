@@ -154,18 +154,14 @@ def train_sudoku_baseline(
 
 save_dir = BASE_DIR + RUN_NAME
 
-try:
-    tokenizer, trained_model, dataset = train_sudoku_baseline(
-        instruction_tuned=True,
-        model_name=MODEL_NAME,
-        test_split_size=0.2,
-        save_dir=save_dir,
-        run_name=RUN_NAME
-    )
-except Exception as e:
-    print("Error in training: {}\n".format(e))
-    print(f"Encountered exception: {e}")
-    pass
+
+tokenizer, trained_model, dataset = train_sudoku_baseline(
+    instruction_tuned=True,
+    model_name=MODEL_NAME,
+    test_split_size=0.2,
+    save_dir=save_dir,
+    run_name=RUN_NAME
+)
 
 clear_gpu_memory(trained_model)
 
