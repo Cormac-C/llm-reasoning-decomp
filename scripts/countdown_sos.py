@@ -120,7 +120,7 @@ def train_countdown_sos(
     tokenizer = AutoTokenizer.from_pretrained(model_name, token=os.environ["HF_TOKEN"])
     tokenizer.pad_token = tokenizer.eos_token
 
-    model = AutoModelForCausalLM(
+    model = AutoModelForCausalLM.from_pretrained(
         model_name,
         token=os.environ["HF_TOKEN"],
         torch_dtype="auto",
