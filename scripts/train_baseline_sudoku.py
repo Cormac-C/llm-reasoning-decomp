@@ -152,13 +152,14 @@ def train_sudoku_baseline(
             preprocess_logits_for_metrics=preprocess_logits_for_metrics,
         ),
         dataset,
+        num_clues_list,
     )
 
 
 save_dir = BASE_DIR + RUN_NAME
 
 
-tokenizer, trained_model, dataset = train_sudoku_baseline(
+tokenizer, trained_model, dataset, num_clues_list = train_sudoku_baseline(
     instruction_tuned=True,
     model_name=MODEL_NAME,
     test_split_size=0.2,
@@ -169,7 +170,7 @@ tokenizer, trained_model, dataset = train_sudoku_baseline(
 clear_gpu_memory(trained_model)
 
 metrics = eval_model_sudoku(
-    model=trained_model, eval_dataset=dataset["test"], tokenizer=tokenizer
+    model=trained_model, eval_dataset=dataset["test"], tokenizer=tokenizer, num_clues_list=num_clues_list,
 )
 
 wandb.log(metrics)

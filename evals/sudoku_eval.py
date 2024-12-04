@@ -98,6 +98,7 @@ def eval_model_sudoku(
     model: Model,
     eval_dataset: Dataset,
     tokenizer,
+    num_clues_list: list,
     formatting_prompts_func=None,
     response_template="<|start_header_id|>assistant<|end_header_id|>",
     content_key="formatted_text",
@@ -112,8 +113,6 @@ def eval_model_sudoku(
     eval_dataset = eval_dataset.map(
         lambda examples: tokenizer(examples[content_key]), batched=True
     )
-
-    num_clues_list = eval_dataset["num_clues"]
 
     training_args = SFTConfig(
         output_dir=save_dir,
