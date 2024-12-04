@@ -51,9 +51,11 @@ class SudokuPuzzleMetric(evaluate.Metric):
                 if ref_part == pred_part:
                     correct_subparts += 1
             correct_subparts -= num_clues
+            print("correct_subparts:", correct_subparts)
 
             # Update totals
             num_subparts += (len(ref_parts) - num_clues)
+            print("num_subparts:", num_subparts)
             if correct_subparts == (len(ref_parts) - num_clues):
                 strict_correct += 1
             partial_correct += correct_subparts
