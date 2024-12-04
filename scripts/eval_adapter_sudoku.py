@@ -49,14 +49,11 @@ def load_prep_sudoku_dataset(tokenizer, instruction_tuned=True, test_split_size=
     
     num_clues_list = [example["num_clues"] for example in dataset]
 
-    dataset = Dataset.from_dict({"formatted_text": formatted_list})
+    dataset = Dataset.from_dict({"formatted_text": formatted_list, "num_clues": num_clues_list})
 
     dataset = dataset.train_test_split(test_size=test_split_size)
 
-    print("Train dataset: ", dataset["train"])
-    print("Test dataset: ", dataset["test"])
-
-    return dataset, num_clues_list
+    return dataset
 
 # Load base model and adapter
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, token=os.environ["HF_TOKEN"])
@@ -78,11 +75,15 @@ print(f"Model precision: {model.config.torch_dtype}")
 peft_model.eval()
 
 # Load dataset
-dataset, num_clues_list = load_prep_sudoku_dataset(
+dataset = load_prep_sudoku_dataset(
     tokenizer, instruction_tuned=True, test_split_size=0.2
 )
 
 dataset = dataset["test"]
+
+num_clues_list = [54]
+
+print("Sample: ", dataset[0])
 
 print(f"Loaded dataset: {len(dataset)} examples")
 
