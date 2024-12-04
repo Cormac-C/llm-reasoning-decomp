@@ -71,9 +71,8 @@ def get_sft_config(run_name=None):
 
 
 def load_prep_sudoku_dataset(tokenizer, instruction_tuned=True, test_split_size=0.2):
-    print("Initializing dataset object")
+
     dataset = Sudoku(data_file=os.environ["SUDOKU_PATH"])
-    print("Initialized dataset object")
 
     if instruction_tuned:
         formatted_list = [chat_format_qa_instance(example) for example in dataset]
