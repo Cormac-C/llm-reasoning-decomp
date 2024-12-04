@@ -48,8 +48,8 @@ class SudokuPuzzleMetric(evaluate.Metric):
             # assert len(ref_parts) == 81
 
             correct_subparts = 0
-            for ref_part in ref_parts:
-                if ref_part in pred_parts:
+            for ref_part, pred_part in zip(ref_parts, pred_parts):
+                if ref_part == pred_part:
                     correct_subparts += 1
 
             # Update totals
