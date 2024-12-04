@@ -32,11 +32,12 @@ device = (
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-RUN_NAME = "sos-1b"
+RUN_NAME = "sos-3b"
 
 BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
 
-MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
+MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
+
 
 def get_sft_config(run_name=None):
     return SFTConfig(
@@ -54,6 +55,7 @@ def get_sft_config(run_name=None):
         label_names=["labels"],
     )
 
+
 def load_prep_countdown_sos(tokenizer, instruction_tuned=True, test_split_size=0.2):
     dataset = Countdown(json_file=os.environ["COUNTDOWN_DATASET"])
 
@@ -65,16 +67,20 @@ def load_prep_countdown_sos(tokenizer, instruction_tuned=True, test_split_size=0
     )
 
     if instruction_tuned:
-        formatted_list = [format_with_few_shot(example, few_shot_prompt, instruction_tuned) for example in dataset]
+        formatted_list = [
+            format_with_few_shot(example, few_shot_prompt, instruction_tuned)
+            for example in dataset
+        ]
         formatted_list = tokenizer.apply_chat_template(
             formatted_list, tokenize=False, add_generation_prompt=False
         )
     else:
         formatted_list = [lm_format_qa_instance(example) for example in dataset]
-    
+
     dataset = Dataset.from_dict({"formatted_text": formatted_list})
     dataset = dataset.train_test_split(test_size=test_split_size)
     return dataset
+
 
 def format_with_few_shot(example, few_shot_prompt, use_chat_format=True):
     task_description = (
@@ -89,22 +95,26 @@ def format_with_few_shot(example, few_shot_prompt, use_chat_format=True):
     # Format the dataset using the appropriate format
     if use_chat_format:
         return [
-                {"role": "user", "content": f"{task_description}\n{guidelines}\n{few_shot_prompt}\n{example["question"]}"},
-                {"role": "assistant", "content": example["answer"]}
-            ]
-        
+            {
+                "role": "user",
+                "content": f"{task_description}\n{guidelines}\n{few_shot_prompt}\n{example["question"]}",
+            },
+            {"role": "assistant", "content": example["answer"]},
+        ]
+
     else:
         return (
             f"### Question {task_description}\n{guidelines}\n{few_shot_prompt}\n{example["question"]}\n"
             f"### Answer {example["answer"]}"
         )
 
+
 def train_countdown_sos(
-        instruction_tuned=True, 
-        model_name="meta-llama/Llama-3.2-1B-Instruct",
-        test_split_size=0.2,
-        save_dir="/tmp",
-        run_name=None,
+    instruction_tuned=True,
+    model_name="meta-llama/Llama-3.2-1B-Instruct",
+    test_split_size=0.2,
+    save_dir="/tmp",
+    run_name=None,
 ):
     tokenizer = AutoTokenizer.from_pretrained(model_name, token=os.environ["HF_TOKEN"])
     tokenizer.pad_token = tokenizer.eos_token
@@ -152,6 +162,7 @@ def train_countdown_sos(
         ),
         dataset,
     )
+
 
 save_dir = BASE_DIR + RUN_NAME
 
