@@ -21,7 +21,7 @@ from data.format import chat_format_qa_instance, lm_format_qa_instance
 from evals.sudoku_eval import (
     eval_model_sudoku,
     generate_compute_metrics_fn,
-    preprocess_logits_for_metrics
+    preprocess_logits_for_metrics,
 )
 
 # Load environment variables
@@ -42,6 +42,7 @@ BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
 
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 
+
 def clear_gpu_memory(model):
     model.zero_grad(set_to_none=True)
 
@@ -53,12 +54,13 @@ def clear_gpu_memory(model):
     model.to(model_device)
     return model
 
+
 def get_sft_config(run_name=None):
     return SFTConfig(
         output_dir="/tmp",
         run_name=run_name,
         # Eval_strategy set to "no" temporarily cause of https://github.com/huggingface/transformers/issues/34701
-        eval_strategy="steps",
+        eval_strategy="no",
         eval_steps=100,
         eval_packing=False,
         per_device_eval_batch_size=4,
@@ -101,7 +103,7 @@ def train_sudoku_baseline(
     tokenizer.pad_token = tokenizer.eos_token
 
     model = AutoModelForCausalLM.from_pretrained(
-        model_name, 
+        model_name,
         token=os.environ["HF_TOKEN"],
         torch_dtype="auto",
         device_map="auto",
@@ -111,7 +113,7 @@ def train_sudoku_baseline(
     print(f"Model precision: {model.config.torch_dtype}")
 
     print("Loading dataset...")
-    
+
     dataset = load_prep_sudoku_dataset(
         tokenizer=tokenizer,
         instruction_tuned=instruction_tuned,
@@ -159,7 +161,7 @@ tokenizer, trained_model, dataset = train_sudoku_baseline(
     model_name=MODEL_NAME,
     test_split_size=0.2,
     save_dir=save_dir,
-    run_name=RUN_NAME
+    run_name=RUN_NAME,
 )
 
 clear_gpu_memory(trained_model)
