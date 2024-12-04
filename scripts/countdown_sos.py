@@ -166,17 +166,15 @@ def train_countdown_sos(
 
 save_dir = BASE_DIR + RUN_NAME
 
-try:
-    tokenizer, trained_model, dataset = train_countdown_sos(
-        instruction_tuned=True,
-        model_name=MODEL_NAME,
-        test_split_size=0.2,
-        save_dir=save_dir,
-        run_name=RUN_NAME,
-    )
-except Exception as e:
-    print(f"Encountered exception: {e}")
-    pass
+
+tokenizer, trained_model, dataset = train_countdown_sos(
+    instruction_tuned=True,
+    model_name=MODEL_NAME,
+    test_split_size=0.2,
+    save_dir=save_dir,
+    run_name=RUN_NAME,
+)
+
 
 # Clear GPU cache except for model and dataset
 clear_gpu_memory(trained_model)
