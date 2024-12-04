@@ -43,9 +43,7 @@ def chat_create_fewshot_prompt(
     qa_instance, examples, num_shots=5, assistant_role="assistant", user_role="user"
 ):
     prompt = []
-    print(f"examples {examples}")
-    few_shot_examples = examples[slice(0, num_shots, 1)]
-    for example in few_shot_examples:
+    for example in examples:
         prompt += chat_format_qa_instance(
             example, assistant_role=assistant_role, user_role=user_role
         )
