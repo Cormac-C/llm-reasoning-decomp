@@ -21,11 +21,19 @@ class SudokuPuzzleMetric(evaluate.Metric):
 
         for pred, ref in zip(predictions, references):
             # Filter for just the puzzle, search for 81 digits
-            ref_filtered = self._puzzle_regex.search(ref).group(1)
-            pred_filtered = self._puzzle_regex.search(pred).group(1)
+            ref_reg_search = self._puzzle_regex.search(ref)
+            pred_reg_search = self._puzzle_regex.search(pred)
 
-            if len(ref_filtered) != 81 or len(pred_filtered) != 81:
-                continue
+            ref_filtered = (
+                ref_reg_search.group(1)
+                if ref_reg_search
+                else "".join([el for el in ref if el.isdigit()])
+            )
+            pred_filtered = (
+                pred_reg_search.group(1)
+                if pred_reg_search
+                else "".join([el for el in pred if el.isdigit()])
+            )
 
             # Split string by character
             ref_parts = list(ref_filtered)
@@ -36,8 +44,8 @@ class SudokuPuzzleMetric(evaluate.Metric):
             print("Length ref_parts: ", len(ref_parts))
             print("Length pred_parts: ", len(pred_parts))
 
-            assert len(ref_parts) == len(pred_parts)
-            assert len(ref_parts) == 81
+            # assert len(ref_parts) == len(pred_parts)
+            # assert len(ref_parts) == 81
 
             correct_subparts = 0
             for ref_part in ref_parts:
@@ -69,7 +77,7 @@ def generate_compute_metrics_fn(tokenizer):
         preds, labels = eval_preds
 
         preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
-        labels = np.where(preds != -100, preds, tokenizer.pad_token_id)
+        labels = np.where(preds != -100, labels, tokenizer.pad_token_id)
         preds_decoded = tokenizer.batch_decode(preds, skip_special_tokens=True)
         labels_decoded = tokenizer.batch_decode(labels, skip_special_tokens=True)
         print(f"pred decoded {preds_decoded}")
