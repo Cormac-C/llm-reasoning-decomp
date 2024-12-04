@@ -53,7 +53,9 @@ def load_prep_sudoku_dataset(
             dataset = dataset[few_shot:]
 
             formatted_list = [
-                chat_create_fewshot_prompt(example, examples=fewshot_examples)
+                chat_create_fewshot_prompt(
+                    example, examples=fewshot_examples, num_shots=few_shot
+                )
                 for example in dataset
             ]
         else:
