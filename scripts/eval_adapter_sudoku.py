@@ -31,7 +31,7 @@ wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
 wandb.init(project="Decomp")
 
-ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/sudoku-1b/llama-1b-instruct-sudoku"
+ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/sudoku-1b/llama-instructsudoku-1b"
 
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 
@@ -46,8 +46,10 @@ def load_prep_sudoku_dataset(tokenizer, instruction_tuned=True, test_split_size=
 
     else:
         formatted_list = [lm_format_qa_instance(example) for example in dataset]
+    
+    num_clues_list = [example["num_clues"] for example in dataset]
 
-    dataset = Dataset.from_dict({"formatted_text": formatted_list})
+    dataset = Dataset.from_dict({"formatted_text": formatted_list, "num_clues": num_clues_list})
 
     dataset = dataset.train_test_split(test_size=test_split_size)
 
@@ -79,9 +81,14 @@ dataset = load_prep_sudoku_dataset(
 
 dataset = dataset["test"]
 
+num_clues_list = dataset["num_clues"]
+
+print("Number of clues in samples", num_clues_list)
+print("Length of number of clues list:", len(num_clues_list))
+
 print(f"Loaded dataset: {len(dataset)} examples")
 
-metrics = eval_model_sudoku(model=peft_model, eval_dataset=dataset, tokenizer=tokenizer)
+metrics = eval_model_sudoku(model=peft_model, eval_dataset=dataset, tokenizer=tokenizer, num_clues_list=num_clues_list)
 
 print(metrics)
 

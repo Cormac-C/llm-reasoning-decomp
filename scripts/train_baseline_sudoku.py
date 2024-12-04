@@ -21,7 +21,7 @@ from data.format import chat_format_qa_instance, lm_format_qa_instance
 from evals.sudoku_eval import (
     eval_model_sudoku,
     generate_compute_metrics_fn,
-    preprocess_logits_for_metrics
+    preprocess_logits_for_metrics,
 )
 
 # Load environment variables
@@ -36,11 +36,12 @@ device = (
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-RUN_NAME = "sudoku-1b"
+RUN_NAME = "sudoku-3b"
 
 BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
 
-MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
+MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
+
 
 def clear_gpu_memory(model):
     model.zero_grad(set_to_none=True)
@@ -53,12 +54,13 @@ def clear_gpu_memory(model):
     model.to(model_device)
     return model
 
+
 def get_sft_config(run_name=None):
     return SFTConfig(
         output_dir="/tmp",
         run_name=run_name,
         # Eval_strategy set to "no" temporarily cause of https://github.com/huggingface/transformers/issues/34701
-        eval_strategy="steps",
+        eval_strategy="no",
         eval_steps=100,
         eval_packing=False,
         per_device_eval_batch_size=4,
@@ -71,6 +73,7 @@ def get_sft_config(run_name=None):
 
 
 def load_prep_sudoku_dataset(tokenizer, instruction_tuned=True, test_split_size=0.2):
+
     dataset = Sudoku(data_file=os.environ["SUDOKU_PATH"])
 
     if instruction_tuned:
@@ -82,7 +85,11 @@ def load_prep_sudoku_dataset(tokenizer, instruction_tuned=True, test_split_size=
     else:
         formatted_list = [lm_format_qa_instance(example) for example in dataset]
 
-    dataset = Dataset.from_dict({"formatted_text": formatted_list})
+    num_clues_list = [example["num_clues"] for example in dataset]
+
+    dataset = Dataset.from_dict(
+        {"formatted_text": formatted_list, "num_clues": num_clues_list}
+    )
 
     dataset = dataset.train_test_split(test_size=test_split_size)
 
@@ -100,7 +107,7 @@ def train_sudoku_baseline(
     tokenizer.pad_token = tokenizer.eos_token
 
     model = AutoModelForCausalLM.from_pretrained(
-        model_name, 
+        model_name,
         token=os.environ["HF_TOKEN"],
         torch_dtype="auto",
         device_map="auto",
@@ -108,12 +115,14 @@ def train_sudoku_baseline(
 
     print(f"Loaded model: {model_name}")
     print(f"Model precision: {model.config.torch_dtype}")
-    
+
     dataset = load_prep_sudoku_dataset(
         tokenizer=tokenizer,
         instruction_tuned=instruction_tuned,
         test_split_size=test_split_size,
     )
+
+    print("Dataset Loaded")
 
     lora_config = LoraConfig(
         target_modules=identify_target_modules(model, name_segment="self_attn"),
@@ -139,7 +148,9 @@ def train_sudoku_baseline(
             lora_config=lora_config,
             training_args=training_config,
             save_dir=save_dir,
-            compute_metrics=generate_compute_metrics_fn(tokenizer),
+            compute_metrics=generate_compute_metrics_fn(
+                tokenizer, dataset["num_clues"]
+            ),
             preprocess_logits_for_metrics=preprocess_logits_for_metrics,
         ),
         dataset,
@@ -148,22 +159,22 @@ def train_sudoku_baseline(
 
 save_dir = BASE_DIR + RUN_NAME
 
-try:
-    tokenizer, trained_model, dataset = train_sudoku_baseline(
-        instruction_tuned=True,
-        model_name=MODEL_NAME,
-        test_split_size=0.2,
-        save_dir=save_dir,
-        run_name=RUN_NAME
-    )
-except Exception as e:
-    print(f"Encountered exception: {e}")
-    pass
+
+tokenizer, trained_model, dataset = train_sudoku_baseline(
+    instruction_tuned=True,
+    model_name=MODEL_NAME,
+    test_split_size=0.2,
+    save_dir=save_dir,
+    run_name=RUN_NAME,
+)
 
 clear_gpu_memory(trained_model)
 
 metrics = eval_model_sudoku(
-    model=trained_model, eval_dataset=dataset["test"], tokenizer=tokenizer
+    model=trained_model,
+    eval_dataset=dataset["test"],
+    tokenizer=tokenizer,
+    num_clues_list=dataset["test"]["num_clues"],
 )
 
 wandb.log(metrics)

@@ -3,8 +3,8 @@ from torch.utils.data import Dataset
 
 
 class Sudoku(Dataset):
-    def __init__(self, data_file):
-        self.dataset = pd.read_csv(data_file)
+    def __init__(self, data_file, num_samples=10000):
+        self.dataset = pd.read_csv(data_file).head(num_samples)
 
     def __len__(self):
         return len(self.dataset)
@@ -20,4 +20,4 @@ class Sudoku(Dataset):
         question = f"Given the Sudoku puzzle {puzzle}, which has {clues} clues and a difficulty rating of {difficulty}. Please solve for the final arrangement."
 
         # Return dictionary with question and solution
-        return {"question": question, "answer": solution}
+        return {"question": question, "answer": solution, "num_clues": clues}
