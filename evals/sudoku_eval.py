@@ -16,8 +16,10 @@ class SudokuPuzzleMetric(evaluate.Metric):
     def compute(self, predictions, references, num_clues_list):
         strict_correct = 0
         partial_correct = 0
+        partial_correct_adjusted = 0
         num_examples = len(predictions)
         num_subparts = 0
+        num_subparts_adjusted = 0
 
         for pred, ref, num_clues in zip(predictions, references, num_clues_list):
             # Filter for just the puzzle, search for 81 digits
@@ -50,28 +52,39 @@ class SudokuPuzzleMetric(evaluate.Metric):
             for ref_part, pred_part in zip(ref_parts, pred_parts):
                 if ref_part == pred_part:
                     correct_subparts += 1
-            correct_subparts -= num_clues
+
+            correct_subparts_adjusted = correct_subparts - num_clues
             print("correct_subparts:", correct_subparts)
 
             # Update totals
-            num_subparts += (len(ref_parts) - num_clues)
+            num_subparts += len(ref_parts)
+            num_subparts_adjusted += len(ref_parts) - num_clues
             print("num_subparts:", num_subparts)
-            if correct_subparts == (len(ref_parts) - num_clues):
+            if correct_subparts == len(ref_parts):
                 strict_correct += 1
             partial_correct += correct_subparts
+            partial_correct_adjusted += correct_subparts_adjusted
 
         self.strict_accuracy = strict_correct / (num_examples or 1e-5)
         self.partial_accuracy = partial_correct / (num_subparts or 1e-5)
-        print(f"Partial Accuracy = {partial_correct}/{num_subparts} = {self.partial_accuracy}")
+        self.partial_accuracy_adjusted = partial_correct_adjusted / (
+            num_subparts_adjusted or 1e-5
+        )
+        print(
+            f"Partial Accuracy = {partial_correct}/{num_subparts} = {self.partial_accuracy}"
+        )
         return {
             "strict_accuracy": self.strict_accuracy,
             "partial_accuracy": self.partial_accuracy,
+            "partial_accuracy_adjusted": self.partial_accuracy_adjusted,
         }
 
 
 def compute_sudoku_metrics(predictions, references, num_clues_list):
     metric = SudokuPuzzleMetric()
-    metric_output = metric.compute(predictions=predictions, references=references, num_clues_list=num_clues_list)
+    metric_output = metric.compute(
+        predictions=predictions, references=references, num_clues_list=num_clues_list
+    )
     return {f"eval_{k}": v for k, v in metric_output.items()}
 
 
