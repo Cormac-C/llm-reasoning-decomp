@@ -31,7 +31,7 @@ wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
 wandb.init(project="Decomp")
 
-ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/sudoku-1b/llama-1b-instruct-sudoku"
+ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/sudoku-1b/llama-instructsudoku-1b"
 
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 
