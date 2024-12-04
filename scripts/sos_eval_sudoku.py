@@ -70,7 +70,11 @@ def load_prep_sudoku_dataset(
     else:
         formatted_list = [lm_format_qa_instance(example) for example in dataset]
 
-    dataset = Dataset.from_dict({"formatted_text": formatted_list})
+    num_clues_list = [example["num_clues"] for example in dataset]
+
+    dataset = Dataset.from_dict(
+        {"formatted_text": formatted_list, "num_clues": num_clues_list}
+    )
 
     dataset = dataset.train_test_split(test_size=test_split_size)
 
