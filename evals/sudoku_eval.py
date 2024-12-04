@@ -43,8 +43,6 @@ class SudokuPuzzleMetric(evaluate.Metric):
             print("pred_parts: ", pred_parts)
             print("Length ref_parts: ", len(ref_parts))
             print("Length pred_parts: ", len(pred_parts))
-            print("Number of clues:", num_clues)
-            print("Number of blanks:", 81 - num_clues)
 
             # assert len(ref_parts) == len(pred_parts)
             # assert len(ref_parts) == 81
@@ -53,23 +51,18 @@ class SudokuPuzzleMetric(evaluate.Metric):
             i = 0
             for ref_part, pred_part in zip(ref_parts, pred_parts):
                 if ref_part == pred_part:
-                    print(f"{ref_part} and {pred_part} at index {i}")
                     correct_subparts += 1
-                    print("Correct subparts now: ", correct_subparts)   
                 i += 1
             correct_subparts -= num_clues
-            print("Correct subparts after number of clues subtracted: ", correct_subparts)
 
             # Update totals
             num_subparts += (len(ref_parts) - num_clues)
-            print("Total number of subparts: ", num_subparts)
             if correct_subparts == (len(ref_parts) - num_clues):
                 strict_correct += 1
             partial_correct += correct_subparts
 
         self.strict_accuracy = strict_correct / (num_examples or 1e-5)
         self.partial_accuracy = partial_correct / (num_subparts or 1e-5)
-        print("Partial Accuracy: ", f"{partial_correct}/{num_subparts}")
         return {
             "strict_accuracy": self.strict_accuracy,
             "partial_accuracy": self.partial_accuracy,
