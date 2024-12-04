@@ -41,12 +41,8 @@ class SudokuPuzzleMetric(evaluate.Metric):
             ref_parts = list(ref_filtered)
             pred_parts = list(pred_filtered)
 
-            print("ref_parts: ", ref_parts)
-            print("pred_parts: ", pred_parts)
             print("Length ref_parts: ", len(ref_parts))
             print("Length pred_parts: ", len(pred_parts))
-            # assert len(ref_parts) == len(pred_parts)
-            # assert len(ref_parts) == 81
 
             correct_subparts = 0
             for ref_part, pred_part in zip(ref_parts, pred_parts):
@@ -54,12 +50,13 @@ class SudokuPuzzleMetric(evaluate.Metric):
                     correct_subparts += 1
 
             correct_subparts_adjusted = correct_subparts - num_clues
-            print("correct_subparts:", correct_subparts)
 
             # Update totals
             num_subparts += len(ref_parts)
             num_subparts_adjusted += len(ref_parts) - num_clues
-            print("num_subparts:", num_subparts)
+
+            print(f"correct subparts/num subparts: {correct_subparts}/{num_subparts}")
+
             if correct_subparts == len(ref_parts):
                 strict_correct += 1
             partial_correct += correct_subparts

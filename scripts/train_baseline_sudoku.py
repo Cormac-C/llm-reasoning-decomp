@@ -84,10 +84,12 @@ def load_prep_sudoku_dataset(tokenizer, instruction_tuned=True, test_split_size=
 
     else:
         formatted_list = [lm_format_qa_instance(example) for example in dataset]
-    
+
     num_clues_list = [example["num_clues"] for example in dataset]
 
-    dataset = Dataset.from_dict({"formatted_text": formatted_list, "num_clues": num_clues_list})
+    dataset = Dataset.from_dict(
+        {"formatted_text": formatted_list, "num_clues": num_clues_list}
+    )
 
     dataset = dataset.train_test_split(test_size=test_split_size)
 
@@ -113,8 +115,6 @@ def train_sudoku_baseline(
 
     print(f"Loaded model: {model_name}")
     print(f"Model precision: {model.config.torch_dtype}")
-
-    print("Loading dataset...")
 
     dataset = load_prep_sudoku_dataset(
         tokenizer=tokenizer,
@@ -148,7 +148,9 @@ def train_sudoku_baseline(
             lora_config=lora_config,
             training_args=training_config,
             save_dir=save_dir,
-            compute_metrics=generate_compute_metrics_fn(tokenizer, dataset["num_clues"]),
+            compute_metrics=generate_compute_metrics_fn(
+                tokenizer, dataset["num_clues"]
+            ),
             preprocess_logits_for_metrics=preprocess_logits_for_metrics,
         ),
         dataset,
@@ -169,7 +171,10 @@ tokenizer, trained_model, dataset = train_sudoku_baseline(
 clear_gpu_memory(trained_model)
 
 metrics = eval_model_sudoku(
-    model=trained_model, eval_dataset=dataset["test"], tokenizer=tokenizer, num_clues_list=dataset["test"]["num_clues"],
+    model=trained_model,
+    eval_dataset=dataset["test"],
+    tokenizer=tokenizer,
+    num_clues_list=dataset["test"]["num_clues"],
 )
 
 wandb.log(metrics)
