@@ -7,6 +7,7 @@ from peft import peft_model, PeftModel
 from dotenv import load_dotenv
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import Dataset
+from torch.utils.data import Subset
 
 # Setup module path for local imports
 module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -49,8 +50,8 @@ def load_prep_sudoku_dataset(
         formatted_list = []
         if few_shot is not None:
             # Pick examples for few-shot learning
-            fewshot_examples = dataset[:few_shot]
-            dataset = dataset[few_shot:]
+            fewshot_examples = Subset(dataset, range(few_shot))
+            dataset = Subset(dataset, range(few_shot, len(dataset)))
             print(f"Few-shot examples: {len(fewshot_examples)}")
             print(f"Remaining examples: {len(dataset)}")
 
