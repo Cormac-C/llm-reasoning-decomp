@@ -20,4 +20,4 @@ class Sudoku(Dataset):
         question = f"Given the Sudoku puzzle {puzzle}, which has {clues} clues and a difficulty rating of {difficulty}. Please solve for the final arrangement."
 
         # Return dictionary with question and solution
-        return {"question": question, "answer": solution}
+        return {"question": question, "answer": solution, "num_clues": clues}

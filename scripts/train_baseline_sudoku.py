@@ -84,12 +84,14 @@ def load_prep_sudoku_dataset(tokenizer, instruction_tuned=True, test_split_size=
 
     else:
         formatted_list = [lm_format_qa_instance(example) for example in dataset]
+    
+    num_clues_list = [example["num_clues"] for example in dataset]
 
     dataset = Dataset.from_dict({"formatted_text": formatted_list})
 
     dataset = dataset.train_test_split(test_size=test_split_size)
 
-    return dataset
+    return dataset, num_clues_list
 
 
 def train_sudoku_baseline(
@@ -114,7 +116,7 @@ def train_sudoku_baseline(
 
     print("Loading dataset...")
 
-    dataset = load_prep_sudoku_dataset(
+    dataset, num_clues_list = load_prep_sudoku_dataset(
         tokenizer=tokenizer,
         instruction_tuned=instruction_tuned,
         test_split_size=test_split_size,
@@ -146,7 +148,7 @@ def train_sudoku_baseline(
             lora_config=lora_config,
             training_args=training_config,
             save_dir=save_dir,
-            compute_metrics=generate_compute_metrics_fn(tokenizer),
+            compute_metrics=generate_compute_metrics_fn(tokenizer)(num_clues_list),
             preprocess_logits_for_metrics=preprocess_logits_for_metrics,
         ),
         dataset,
