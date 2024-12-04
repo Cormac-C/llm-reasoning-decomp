@@ -22,6 +22,11 @@ class SudokuPuzzleMetric(evaluate.Metric):
             ref_parts = list(ref)
             pred_parts = list(pred)
 
+            print("ref_parts: " + ref_parts)
+            print("pred_parts: " + pred_parts)
+            print("Length ref_parts: " + len(ref_parts))
+            print("Length pred_parts: " + len(pred_parts))
+
             assert len(ref_parts) == len(pred_parts)
             assert len(ref_parts) == 81
 
