@@ -102,7 +102,7 @@ peft_model.eval()
 
 # Load dataset
 dataset = load_prep_sudoku_dataset(
-    tokenizer, instruction_tuned=True, few_shot=None, test_split_size=0.2
+    tokenizer, instruction_tuned=True, few_shot=3, test_split_size=0.2
 )
 
 dataset = dataset["test"]
