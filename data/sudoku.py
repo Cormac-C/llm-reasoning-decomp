@@ -3,8 +3,8 @@ from torch.utils.data import Dataset
 
 
 class Sudoku(Dataset):
-    def __init__(self, data_file):
-        self.dataset = pd.read_csv(data_file)
+    def __init__(self, data_file, num_samples=5000):
+        self.dataset = pd.read_csv(data_file).head(num_samples)
 
     def __len__(self):
         return len(self.dataset)
