@@ -51,6 +51,8 @@ def load_prep_sudoku_dataset(
             # Pick examples for few-shot learning
             fewshot_examples = dataset[:few_shot]
             dataset = dataset[few_shot:]
+            print(f"Few-shot examples: {len(fewshot_examples)}")
+            print(f"Remaining examples: {len(dataset)}")
 
             formatted_list = [
                 chat_create_fewshot_prompt(
