@@ -60,8 +60,8 @@ def get_sft_config(run_name=None):
         output_dir="/tmp",
         run_name=run_name,
         # Eval_strategy set to "no" temporarily cause of https://github.com/huggingface/transformers/issues/34701
-        eval_strategy="no",
-        eval_steps=100,
+        eval_strategy="steps",
+        eval_steps=50,
         eval_packing=False,
         per_device_eval_batch_size=4,
         eval_accumulation_steps=1,
