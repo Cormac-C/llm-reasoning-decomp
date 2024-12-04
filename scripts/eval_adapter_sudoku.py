@@ -81,9 +81,7 @@ dataset = load_prep_sudoku_dataset(
 
 dataset = dataset["test"]
 
-num_clues_list = [54]
-
-print("Sample: ", dataset[0])
+num_clues_list = dataset["num_clues"]
 
 print(f"Loaded dataset: {len(dataset)} examples")
 
