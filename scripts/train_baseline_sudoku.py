@@ -71,7 +71,9 @@ def get_sft_config(run_name=None):
 
 
 def load_prep_sudoku_dataset(tokenizer, instruction_tuned=True, test_split_size=0.2):
+    print("Initializing dataset object")
     dataset = Sudoku(data_file=os.environ["SUDOKU_PATH"])
+    print("Initialized dataset object")
 
     if instruction_tuned:
         formatted_list = [chat_format_qa_instance(example) for example in dataset]
@@ -108,12 +110,16 @@ def train_sudoku_baseline(
 
     print(f"Loaded model: {model_name}")
     print(f"Model precision: {model.config.torch_dtype}")
+
+    print("Loading dataset...")
     
     dataset = load_prep_sudoku_dataset(
         tokenizer=tokenizer,
         instruction_tuned=instruction_tuned,
         test_split_size=test_split_size,
     )
+
+    print("Dataset Loaded")
 
     lora_config = LoraConfig(
         target_modules=identify_target_modules(model, name_segment="self_attn"),
