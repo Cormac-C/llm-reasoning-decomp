@@ -40,7 +40,7 @@ def lm_create_fewshot_prompt(
 
 # Few-shot prompt constructor in chat format
 def chat_create_fewshot_prompt(
-    query, examples, num_shots=5, assistant_role="assistant", user_role="user"
+    qa_instance, examples, num_shots=5, assistant_role="assistant", user_role="user"
 ):
     prompt = []
     for example in examples[:num_shots]:
@@ -49,7 +49,7 @@ def chat_create_fewshot_prompt(
         )
 
     prompt += chat_format_qa_instance(
-        {"question": query, "answer": ""},
+        qa_instance,
         assistant_role=assistant_role,
         user_role=user_role,
     )
