@@ -34,11 +34,11 @@ device = (
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-wandb.init(project="Decomp", name="base-zebra-1b-3-shot")
+wandb.init(project="Decomp", name="base-zebra-3b-3-shot")
 
 FEW_SHOT = 3
 
-MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
+MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
 
 
 def load_prep_zebra_dataset(
