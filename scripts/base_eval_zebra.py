@@ -34,9 +34,9 @@ device = (
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-wandb.init(project="Decomp", name="base-zebra-3b-3-shot")
+wandb.init(project="Decomp", name="base-zebra-3b-zero-shot")
 
-FEW_SHOT = 3
+FEW_SHOT = None
 
 MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
 
