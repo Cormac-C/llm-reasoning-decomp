@@ -6,6 +6,9 @@ from typing import Dict
 import evaluate
 import re
 
+EPS = 1e-5
+HF_MASK_VALUE = -100
+
 
 class SudokuPuzzleMetric(evaluate.Metric):
     def __init__(self):
@@ -22,7 +25,6 @@ class SudokuPuzzleMetric(evaluate.Metric):
         num_subparts_adjusted = 0
 
         for pred, ref, num_clues in zip(predictions, references, num_clues_list):
-            # Filter for just the puzzle, search for 81 digits
             ref_reg_search = self._puzzle_regex.search(ref)
             pred_reg_search = self._puzzle_regex.search(pred)
 
@@ -41,9 +43,6 @@ class SudokuPuzzleMetric(evaluate.Metric):
             ref_parts = list(ref_filtered)
             pred_parts = list(pred_filtered)
 
-            print("Length ref_parts: ", len(ref_parts))
-            print("Length pred_parts: ", len(pred_parts))
-
             correct_subparts = 0
             for ref_part, pred_part in zip(ref_parts, pred_parts):
                 if ref_part == pred_part:
@@ -55,20 +54,15 @@ class SudokuPuzzleMetric(evaluate.Metric):
             num_subparts += len(ref_parts)
             num_subparts_adjusted += len(ref_parts) - num_clues
 
-            print(f"correct subparts/num subparts: {correct_subparts}/{num_subparts}")
-
             if correct_subparts == len(ref_parts):
                 strict_correct += 1
             partial_correct += correct_subparts
             partial_correct_adjusted += correct_subparts_adjusted
 
-        self.strict_accuracy = strict_correct / (num_examples or 1e-5)
-        self.partial_accuracy = partial_correct / (num_subparts or 1e-5)
+        self.strict_accuracy = strict_correct / (num_examples or EPS)
+        self.partial_accuracy = partial_correct / (num_subparts or EPS)
         self.partial_accuracy_adjusted = partial_correct_adjusted / (
-            num_subparts_adjusted or 1e-5
-        )
-        print(
-            f"Partial Accuracy = {partial_correct}/{num_subparts} = {self.partial_accuracy}"
+            num_subparts_adjusted or EPS
         )
         return {
             "strict_accuracy": self.strict_accuracy,
@@ -89,12 +83,12 @@ def generate_compute_metrics_fn(tokenizer, num_clues_list):
     def compute_sudoku_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
         preds, labels = eval_preds
 
-        preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
-        labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
+        preds = np.where(preds != HF_MASK_VALUE, preds, tokenizer.pad_token_id)
+        labels = np.where(labels != HF_MASK_VALUE, labels, tokenizer.pad_token_id)
+
         preds_decoded = tokenizer.batch_decode(preds, skip_special_tokens=True)
         labels_decoded = tokenizer.batch_decode(labels, skip_special_tokens=True)
-        print(f"pred decoded {preds_decoded}")
-        print(f"label decoded {labels_decoded}")
+
         return compute_sudoku_metrics(preds_decoded, labels_decoded, num_clues_list)
 
     return compute_sudoku_metrics_for_trainer
