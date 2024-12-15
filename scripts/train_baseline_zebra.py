@@ -6,7 +6,6 @@ import wandb
 from peft import LoraConfig
 from dotenv import load_dotenv
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from datasets import Dataset
 from trl import SFTConfig
 
 # Setup module path for local imports
@@ -16,8 +15,7 @@ if module_path not in sys.path:
 
 from src.train import sft_train_lora
 from src.model import identify_target_modules
-from data.zebra import Zebra
-from data.format import chat_format_qa_instance, lm_format_qa_instance
+from data.utils import load_prep_zebra_dataset
 from evals.zebra_eval import (
     eval_model_zebra,
     generate_compute_metrics_fn,
@@ -70,21 +68,6 @@ def get_sft_config(run_name=None):
         dataset_batch_size=16,
         label_names=["labels"],
     )
-
-
-def load_prep_zebra_dataset(tokenizer, instruction_tuned=True, test_split_size=0.2):
-    dataset = Zebra(hf_token=os.environ["HF_TOKEN"])
-    if instruction_tuned:
-        formatted_list = [chat_format_qa_instance(example) for example in dataset]
-        formatted_list = tokenizer.apply_chat_template(
-            formatted_list, tokenize=False, add_generation_prompt=False
-        )
-    else:
-        formatted_list = [lm_format_qa_instance(example) for example in dataset]
-    dataset = Dataset.from_dict({"formatted_text": formatted_list})
-
-    dataset = dataset.train_test_split(test_size=test_split_size)
-    return dataset
 
 
 def train_zebra_baseline(
