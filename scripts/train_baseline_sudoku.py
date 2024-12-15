@@ -18,6 +18,7 @@ from src.train import sft_train_lora
 from src.model import identify_target_modules
 from data.sudoku import Sudoku
 from data.format import chat_format_qa_instance, lm_format_qa_instance
+from data.utils import load_prep_sudoku_dataset
 from evals.sudoku_eval import (
     eval_model_sudoku,
     generate_compute_metrics_fn,
@@ -72,30 +73,6 @@ def get_sft_config(run_name=None):
     )
 
 
-def load_prep_sudoku_dataset(tokenizer, instruction_tuned=True, test_split_size=0.2):
-
-    dataset = Sudoku(data_file=os.environ["SUDOKU_PATH"])
-
-    if instruction_tuned:
-        formatted_list = [chat_format_qa_instance(example) for example in dataset]
-        formatted_list = tokenizer.apply_chat_template(
-            formatted_list, tokenize=False, add_generation_prompt=False
-        )
-
-    else:
-        formatted_list = [lm_format_qa_instance(example) for example in dataset]
-
-    num_clues_list = [example["num_clues"] for example in dataset]
-
-    dataset = Dataset.from_dict(
-        {"formatted_text": formatted_list, "num_clues": num_clues_list}
-    )
-
-    dataset = dataset.train_test_split(test_size=test_split_size)
-
-    return dataset
-
-
 def train_sudoku_baseline(
     instruction_tuned=True,
     model_name="meta-llama/Llama-3.2-1B-Instruct",
@@ -120,6 +97,7 @@ def train_sudoku_baseline(
         tokenizer=tokenizer,
         instruction_tuned=instruction_tuned,
         test_split_size=test_split_size,
+        few_shot=None,
     )
 
     print("Dataset Loaded")
