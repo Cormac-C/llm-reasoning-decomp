@@ -16,7 +16,7 @@ if module_path not in sys.path:
 
 from src.train import sft_train_lora
 from src.model import identify_target_modules
-from data.synthetic.countdown import Countdown
+from data.countdown import Countdown
 from data.format import lm_format_qa_instance
 
 
