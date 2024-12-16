@@ -53,7 +53,7 @@ def get_sft_config(run_name=None):
 
 
 def load_prep_countdown_sos(tokenizer, instruction_tuned=True, test_split_size=0.2):
-    dataset = Countdown(json_file=os.environ["COUNTDOWN_DATASET"])
+    dataset = Countdown(json_file=os.environ["COUNTDOWN_PATH"])
 
     few_shot_example = dataset[0]
     few_shot_prompt = (
