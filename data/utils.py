@@ -31,9 +31,7 @@ def load_prep_sudoku_dataset(
             dataset = Subset(dataset, range(few_shot, len(dataset)))
 
             formatted_list = [
-                chat_create_fewshot_prompt(
-                    example, examples=fewshot_examples, num_shots=few_shot
-                )
+                chat_create_fewshot_prompt(example, examples=fewshot_examples)
                 for example in dataset
             ]
         else:
@@ -66,9 +64,7 @@ def load_prep_zebra_dataset(
             fewshot_examples = Subset(dataset, range(few_shot))
             dataset = Subset(dataset, range(few_shot, len(dataset)))
             formatted_list = [
-                chat_create_fewshot_prompt(
-                    example, examples=fewshot_examples, num_shots=few_shot
-                )
+                chat_create_fewshot_prompt(example, examples=fewshot_examples)
                 for example in dataset
             ]
         else:
