@@ -13,7 +13,7 @@ if module_path not in sys.path:
 
 from data.utils import load_prep_zebra_dataset
 from evals.zebra_eval import eval_model_zebra
-from scripts.utils import configure_device
+from scripts.utils import configure_device, read_int_arg
 
 
 # Load environment variables
@@ -25,6 +25,8 @@ device = configure_device()
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
 wandb.init(project="Decomp")
+
+FEW_SHOT = read_int_arg(sys.argv, 1, default=None)
 
 ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-1b/llama-1b-instruct-zebra"
 
@@ -52,7 +54,7 @@ peft_model.eval()
 
 # Load dataset
 dataset = load_prep_zebra_dataset(
-    tokenizer, instruction_tuned=True, test_split_size=0.2, few_shot=None
+    tokenizer, instruction_tuned=True, test_split_size=0.2, few_shot=FEW_SHOT
 )
 
 dataset = dataset["test"]

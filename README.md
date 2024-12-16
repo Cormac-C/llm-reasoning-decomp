@@ -36,7 +36,6 @@ python scripts/train_baseline_zebra.py
 python scripts/train_baseline_sudoku.py
 
 python scripts/train_countdown_sos.py
-
 ```
 
 ## Evaluation
@@ -55,10 +54,13 @@ python scripts/eval_adapter_sudoku.py
 python scripts/eval_sos_zebra.py
 
 python scripts/eval_sos_sudoku.py
-
 ```
 
-TODO: add mention of passing in few shot param
+For each eval script you can specify the number of few-shot examples as a parameter, the default is zero-shot.
+
+```eval scripts few shot
+python scripts/eval_base_zebra.py 3
+```
 
 ## Data
 
