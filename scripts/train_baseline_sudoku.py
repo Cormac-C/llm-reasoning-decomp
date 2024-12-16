@@ -6,7 +6,6 @@ import wandb
 from peft import LoraConfig
 from dotenv import load_dotenv
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from datasets import Dataset
 from trl import SFTConfig
 
 # Setup module path for local imports
@@ -16,24 +15,19 @@ if module_path not in sys.path:
 
 from src.train import sft_train_lora
 from src.model import identify_target_modules
-from data.sudoku import Sudoku
-from data.format import chat_format_qa_instance, lm_format_qa_instance
 from data.utils import load_prep_sudoku_dataset
 from evals.sudoku_eval import (
     eval_model_sudoku,
     generate_compute_metrics_fn,
     preprocess_logits_for_metrics,
 )
+from scripts.utils import configure_device
 
 # Load environment variables
 load_dotenv()
 
 # Configure device
-device = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps" if torch.backend.mps.is_available() else "cpu"
-)
+device = configure_device()
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 

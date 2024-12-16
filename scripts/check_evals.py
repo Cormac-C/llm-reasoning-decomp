@@ -1,6 +1,5 @@
 import os
 import sys
-import torch
 
 from dotenv import load_dotenv
 from transformers import AutoTokenizer

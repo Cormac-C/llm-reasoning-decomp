@@ -21,16 +21,13 @@ from evals.zebra_eval import (
     generate_compute_metrics_fn,
     preprocess_logits_for_metrics,
 )
+from scripts.utils import configure_device
 
 # Load environment variables
 load_dotenv()
 
 # Configure device
-device = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps" if torch.backends.mps.is_available() else "cpu"
-)
+device = configure_device()
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 

@@ -1,6 +1,5 @@
 import os
 import sys
-import torch
 import wandb
 
 from peft import LoraConfig
@@ -18,17 +17,14 @@ from src.train import sft_train_lora
 from src.model import identify_target_modules
 from data.countdown import Countdown
 from data.format import lm_format_qa_instance
+from scripts.utils import configure_device
 
 
 # Load environment variables
 load_dotenv()
 
 # Configure device
-device = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps" if torch.backend.mps.is_available() else "cpu"
-)
+device = configure_device()
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 

@@ -1,6 +1,5 @@
 import os
 import sys
-import torch
 import wandb
 
 from dotenv import load_dotenv
@@ -13,22 +12,19 @@ if module_path not in sys.path:
 
 from evals.sudoku_eval import eval_model_sudoku
 from data.utils import load_prep_sudoku_dataset
+from scripts.utils import configure_device, read_int_arg
 
 # Load environment variables
 load_dotenv()
 
 # Configure device
-device = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps" if torch.backends.mps.is_available() else "cpu"
-)
+device = configure_device()
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
 wandb.init(project="Decomp", name="base-sudoku-1b-zero-shot")
 
-FEW_SHOT = None
+FEW_SHOT = read_int_arg(sys.argv, 1, default=None)
 
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 

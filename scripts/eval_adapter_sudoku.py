@@ -1,6 +1,5 @@
 import os
 import sys
-import torch
 import wandb
 
 from peft import peft_model, PeftModel
@@ -14,16 +13,14 @@ if module_path not in sys.path:
 
 from data.utils import load_prep_sudoku_dataset
 from evals.sudoku_eval import eval_model_sudoku
+from scripts.utils import configure_device
+
 
 # Load environment variables
 load_dotenv()
 
 # Configure device
-device = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps" if torch.backends.mps.is_available() else "cpu"
-)
+device = configure_device()
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
