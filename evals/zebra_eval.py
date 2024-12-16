@@ -100,7 +100,6 @@ class ZebraPuzzleMetric(evaluate.Metric):
 
             # Match each part of the reference with a part of the prediction based on house number
             part_pairs = self._match_parts(ref_parts, pred_parts)
-            print(f"part pairs: {part_pairs}")
 
             for house_num, parts in part_pairs.items():
                 ref_parts = parts["ref"]
@@ -140,6 +139,13 @@ def generate_compute_metrics_fn(tokenizer):
 
         preds_decoded = tokenizer.batch_decode(preds, skip_special_tokens=True)
         labels_decoded = tokenizer.batch_decode(labels, skip_special_tokens=True)
+
+        # Log the first few predictions and labels
+        num_prints = 5
+        for i in range(num_prints):
+            print(f"Prediction: {preds_decoded[i]}")
+            print(f"Label: {labels_decoded[i]}")
+            print()
 
         return compute_zebra_metrics(preds_decoded, labels_decoded)
 
