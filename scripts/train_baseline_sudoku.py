@@ -21,7 +21,7 @@ from evals.sudoku_eval import (
     generate_compute_metrics_fn,
     preprocess_logits_for_metrics,
 )
-from scripts.utils import configure_device
+from scripts.utils import configure_device, clear_gpu_memory
 
 # Load environment variables
 load_dotenv()
@@ -33,21 +33,10 @@ wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
 RUN_NAME = "sudoku-3b"
 
+# TODO: move BASE_DIR to .env
 BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
 
 MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
-
-
-def clear_gpu_memory(model):
-    model.zero_grad(set_to_none=True)
-
-    model_device = next(model.parameters()).device
-    model.to("cpu")
-
-    torch.cuda.empty_cache()
-
-    model.to(model_device)
-    return model
 
 
 def get_sft_config(run_name=None):

@@ -21,7 +21,7 @@ from evals.zebra_eval import (
     generate_compute_metrics_fn,
     preprocess_logits_for_metrics,
 )
-from scripts.utils import configure_device
+from scripts.utils import configure_device, clear_gpu_memory
 
 # Load environment variables
 load_dotenv()
@@ -36,18 +36,6 @@ RUN_NAME = "zebra-3b"
 BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
 
 MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
-
-
-def clear_gpu_memory(model):
-    model.zero_grad(set_to_none=True)
-
-    model_device = next(model.parameters()).device
-    model.to("cpu")
-
-    torch.cuda.empty_cache()
-
-    model.to(model_device)
-    return model
 
 
 def get_sft_config(run_name=None):
@@ -139,7 +127,6 @@ except Exception as e:
     # Note: Temp fix for error at the end of training
     pass
 
-# Clear GPU cache except for model and dataset
 clear_gpu_memory(trained_model)
 
 # Evaluate the trained model
