@@ -14,7 +14,7 @@ if module_path not in sys.path:
 
 from data.utils import load_prep_sudoku_dataset
 from evals.sudoku_eval import eval_model_sudoku
-from scripts.utils import configure_device, read_int_arg
+from scripts.utils import configure_device, read_named_args
 
 # Load environment variables
 load_dotenv()
@@ -26,11 +26,13 @@ wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
 wandb.init(project="Decomp")
 
-FEW_SHOT = read_int_arg(sys.argv, 1, default=None)
+args = read_named_args()
+
+FEW_SHOT = args.few_shot
+
+MODEL_NAME = args.base_model
 
 ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/sos-3b/llama-instructsos-3b"
-
-MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
 
 
 # Load base model and adapter
