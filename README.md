@@ -38,9 +38,17 @@ python scripts/train_baseline_sudoku.py
 python scripts/train_countdown_sos.py
 ```
 
+For each script you can specify the size of the base model with the flag `--base_model= <1B or 3B>`. For example:
+
+```train scripts args
+python scripts/train_baseline_zebra.py --base_model=1B
+```
+
+will fine-tune an adapter on top of Llama-3.2-1B-Instruct.
+
 ## Evaluation
 
-To evaluate the base model and the trained adapeters we have the following scripts:
+To evaluate the base model and the trained adapeers we have the following scripts:
 
 ```eval scripts
 python scripts/eval_base_zebra.py
@@ -56,11 +64,14 @@ python scripts/eval_sos_zebra.py
 python scripts/eval_sos_sudoku.py
 ```
 
-For each eval script you can specify the number of few-shot examples as a parameter, the default is zero-shot.
+For each script you can specify the size of the base model with the flag `--base_model= <1B or 3B>` and specify the number of few-shot examples with the flag `--few_shot= <int>`. For example:
+For each eval script you can specify the number of few-shot examples as a parameter, the default is zero-shot. For example:
 
 ```eval scripts few shot
-python scripts/eval_base_zebra.py 3
+python scripts/eval_base_zebra.py --few_shot=3 --base_model=1B
 ```
+
+will evaluate Llama-3.2-1B-Instruct on the zebra test set with 3 few shot examples.
 
 ## Data
 
