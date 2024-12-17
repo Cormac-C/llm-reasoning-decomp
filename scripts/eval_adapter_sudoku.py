@@ -13,7 +13,7 @@ if module_path not in sys.path:
 
 from data.utils import load_prep_sudoku_dataset
 from evals.sudoku_eval import eval_model_sudoku
-from scripts.utils import configure_device, read_named_args
+from scripts.utils import configure_device, read_named_args, create_run_name
 
 
 # Load environment variables
@@ -26,7 +26,7 @@ args = read_named_args()
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-wandb.init(project="Decomp")
+wandb.init(project="Decomp", name=create_run_name(args, "sudoku-adapter-eval"))
 
 FEW_SHOT = args.few_shot
 

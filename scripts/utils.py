@@ -30,6 +30,23 @@ def read_named_args():
     return parsed
 
 
+def create_run_name(args, base_name=""):
+    run_name = base_name
+
+    if args.few_shot is not None:
+        run_name += f"-{args.few_shot}shot"
+    else:
+        run_name += "-zeroshot"
+
+    if args.base_model == "meta-llama/Llama-3.2-1B-Instruct":
+        run_name += "-1B"
+    elif args.base_model == "meta-llama/Llama-3.2-3B-Instruct":
+        run_name += "-3B"
+    else:
+        run_name += args.base_model
+    return run_name
+
+
 def clear_gpu_memory(model):
     model.zero_grad(set_to_none=True)
 

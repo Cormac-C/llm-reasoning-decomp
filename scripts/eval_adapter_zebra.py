@@ -13,7 +13,7 @@ if module_path not in sys.path:
 
 from data.utils import load_prep_zebra_dataset
 from evals.zebra_eval import eval_model_zebra
-from scripts.utils import configure_device, read_named_args
+from scripts.utils import configure_device, read_named_args, create_run_name
 
 
 # Load environment variables
@@ -22,11 +22,11 @@ load_dotenv()
 # Configure device
 device = configure_device()
 
+args = read_named_args()
+
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-wandb.init(project="Decomp")
-
-args = read_named_args()
+wandb.init(project="Decomp", name=create_run_name(args, "zebra-adapter-eval"))
 
 FEW_SHOT = args.few_shot
 
