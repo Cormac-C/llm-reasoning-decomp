@@ -1,5 +1,6 @@
 import os
 import sys
+import torch
 import wandb
 
 from peft import peft_model, PeftModel
@@ -15,7 +16,6 @@ from data.utils import load_prep_zebra_dataset
 from evals.zebra_eval import eval_model_zebra
 from scripts.utils import configure_device, read_int_arg
 
-
 # Load environment variables
 load_dotenv()
 
@@ -28,7 +28,7 @@ wandb.init(project="Decomp")
 
 FEW_SHOT = read_int_arg(sys.argv, 1, default=None)
 
-ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-1b/llama-1b-instruct-zebra"
+ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/sos-1b/llama-instructsos-1b"
 
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 
@@ -44,7 +44,7 @@ model = AutoModelForCausalLM.from_pretrained(
     device_map="auto",
 )
 
-peft_model = PeftModel.from_pretrained(model, ADAPTER_DIR, "zebra")
+peft_model = PeftModel.from_pretrained(model, ADAPTER_DIR, "sos")
 peft_model.to(device)
 
 print(f"Loaded model: {MODEL_NAME}")

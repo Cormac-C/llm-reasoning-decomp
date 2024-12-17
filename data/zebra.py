@@ -2,21 +2,6 @@ from datasets import load_dataset
 from torch.utils.data import Dataset
 
 
-def verbalize_solution(solution):
-    verbalized_solution = "The solution is as follows:\n"
-    headers = solution["header"]
-
-    for row in solution["rows"]:
-        row_description = f"In {headers[0].lower()} {row[0]}, "
-        row_description += ", ".join(
-            f"{headers[i].lower()} is {row[i]}" for i in range(1, len(headers))
-        )
-        row_description += ".\n"
-        verbalized_solution += row_description
-
-    return verbalized_solution
-
-
 class Zebra(Dataset):
     def __init__(self, hf_token, split="test"):
         self.dataset = load_dataset(
@@ -33,6 +18,20 @@ class Zebra(Dataset):
 
         # Format the question and verbalized answer
         question = f"Given {puzzle}. Please solve for the final arrangement."
-        verbalized_answer = verbalize_solution(solution)
+        verbalized_answer = self._verbalize_solution(solution)
 
         return {"question": question, "answer": verbalized_answer}
+
+    def _verbalize_solution(self, solution):
+        verbalized_solution = "The solution is as follows:\n"
+        headers = solution["header"]
+
+        for row in solution["rows"]:
+            row_description = f"In {headers[0].lower()} {row[0]}, "
+            row_description += ", ".join(
+                f"{headers[i].lower()} is {row[i]}" for i in range(1, len(headers))
+            )
+            row_description += ".\n"
+            verbalized_solution += row_description
+
+        return verbalized_solution

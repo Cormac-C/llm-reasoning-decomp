@@ -1,5 +1,6 @@
 import os
 import sys
+import torch
 import wandb
 
 from peft import peft_model, PeftModel
@@ -11,10 +12,9 @@ module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
-from data.utils import load_prep_zebra_dataset
-from evals.zebra_eval import eval_model_zebra
+from data.utils import load_prep_sudoku_dataset
+from evals.sudoku_eval import eval_model_sudoku
 from scripts.utils import configure_device, read_int_arg
-
 
 # Load environment variables
 load_dotenv()
@@ -28,9 +28,9 @@ wandb.init(project="Decomp")
 
 FEW_SHOT = read_int_arg(sys.argv, 1, default=None)
 
-ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-1b/llama-1b-instruct-zebra"
+ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/sos-3b/llama-instructsos-3b"
 
-MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
+MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
 
 
 # Load base model and adapter
@@ -44,7 +44,7 @@ model = AutoModelForCausalLM.from_pretrained(
     device_map="auto",
 )
 
-peft_model = PeftModel.from_pretrained(model, ADAPTER_DIR, "zebra")
+peft_model = PeftModel.from_pretrained(model, ADAPTER_DIR, "sos")
 peft_model.to(device)
 
 print(f"Loaded model: {MODEL_NAME}")
@@ -53,15 +53,25 @@ print(f"Model precision: {model.config.torch_dtype}")
 peft_model.eval()
 
 # Load dataset
-dataset = load_prep_zebra_dataset(
-    tokenizer, instruction_tuned=True, test_split_size=0.2, few_shot=FEW_SHOT
+dataset = load_prep_sudoku_dataset(
+    tokenizer,
+    instruction_tuned=True,
+    few_shot=FEW_SHOT,
+    test_split_size=0.2,
 )
 
 dataset = dataset["test"]
 
+num_clues_list = dataset["num_clues"]
+
 print(f"Loaded dataset: {len(dataset)} examples")
 
-metrics = eval_model_zebra(model=peft_model, eval_dataset=dataset, tokenizer=tokenizer)
+metrics = eval_model_sudoku(
+    model=peft_model,
+    eval_dataset=dataset,
+    tokenizer=tokenizer,
+    num_clues_list=num_clues_list,
+)
 
 print(metrics)
 

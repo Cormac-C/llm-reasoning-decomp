@@ -5,3 +5,4 @@ settings.json
 *.csv
 .env
 countdown.json
+wandb/

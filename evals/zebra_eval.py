@@ -6,6 +6,9 @@ import re
 from typing import Dict
 import numpy as np
 
+EPS = 1e-5
+HF_MASK_VALUE = -100
+
 
 class ZebraPuzzleMetric(evaluate.Metric):
     def __init__(self):
@@ -97,7 +100,6 @@ class ZebraPuzzleMetric(evaluate.Metric):
 
             # Match each part of the reference with a part of the prediction based on house number
             part_pairs = self._match_parts(ref_parts, pred_parts)
-            print(f"part pairs: {part_pairs}")
 
             for house_num, parts in part_pairs.items():
                 ref_parts = parts["ref"]
@@ -114,8 +116,8 @@ class ZebraPuzzleMetric(evaluate.Metric):
                 strict_correct += 1
             partial_correct += iter_partial_correct
 
-        self.strict_accuracy = strict_correct / (num_examples or 1e-5)
-        self.partial_accuracy = partial_correct / (num_subparts or 1e-5)
+        self.strict_accuracy = strict_correct / (num_examples or EPS)
+        self.partial_accuracy = partial_correct / (num_subparts or EPS)
         return {
             "strict_accuracy": self.strict_accuracy,
             "partial_accuracy": self.partial_accuracy,
@@ -132,13 +134,19 @@ def generate_compute_metrics_fn(tokenizer):
     def compute_zebra_metrics_for_trainer(eval_preds: EvalPrediction) -> Dict:
         preds, labels = eval_preds
 
-        # Need to decode the predictions and labels, remove -100 as it is just padding
-        preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
-        labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
+        preds = np.where(preds != HF_MASK_VALUE, preds, tokenizer.pad_token_id)
+        labels = np.where(labels != HF_MASK_VALUE, labels, tokenizer.pad_token_id)
+
         preds_decoded = tokenizer.batch_decode(preds, skip_special_tokens=True)
         labels_decoded = tokenizer.batch_decode(labels, skip_special_tokens=True)
-        print(f"pred decoded {preds_decoded}")
-        print(f"label decoded {labels_decoded}")
+
+        # Log the first few predictions and labels
+        num_prints = 5
+        for i in range(num_prints):
+            print(f"Prediction: {preds_decoded[i]}")
+            print(f"Label: {labels_decoded[i]}")
+            print()
+
         return compute_zebra_metrics(preds_decoded, labels_decoded)
 
     return compute_zebra_metrics_for_trainer
