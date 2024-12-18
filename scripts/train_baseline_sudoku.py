@@ -116,7 +116,7 @@ def train_sudoku_baseline(
             training_args=training_config,
             save_dir=save_dir,
             compute_metrics=generate_compute_metrics_fn(
-                tokenizer, dataset["num_clues"]
+                tokenizer, dataset["train"]["num_clues"]
             ),
             preprocess_logits_for_metrics=preprocess_logits_for_metrics,
         ),
