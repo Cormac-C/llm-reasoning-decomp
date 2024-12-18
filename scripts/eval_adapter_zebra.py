@@ -22,7 +22,7 @@ load_dotenv()
 # Configure device
 device = configure_device()
 
-args = read_named_args()
+args = read_named_args(include_adapter_dir=True)
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
@@ -33,7 +33,7 @@ FEW_SHOT = args.few_shot
 MODEL_NAME = args.base_model
 
 # TODO: move adapter dir to args
-ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-1b/llama-1b-instruct-zebra"
+ADAPTER_DIR = args.adapter_dir
 
 
 # Load base model and adapter

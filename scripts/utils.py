@@ -11,10 +11,13 @@ def configure_device():
         return "cpu"
 
 
-def read_named_args():
+def read_named_args(include_adapter_dir=False):
     parser = argparse.ArgumentParser()
     parser.add_argument("--few_shot", type=int, default=None)
     parser.add_argument("--base_model", type=str, default="1B")
+    if include_adapter_dir:
+        parser.add_argument("adapter_dir", type=str, default=None)
+
     parsed = parser.parse_args()
 
     if parsed.few_shot is not None and parsed.few_shot == 0:

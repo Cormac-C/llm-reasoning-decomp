@@ -22,7 +22,7 @@ load_dotenv()
 # Configure device
 device = configure_device()
 
-args = read_named_args()
+args = read_named_args(include_adapter_dir=True)
 
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
@@ -32,7 +32,7 @@ FEW_SHOT = args.few_shot
 
 MODEL_NAME = args.base_model
 
-ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/sudoku-1b/llama-instructsudoku-1b"
+ADAPTER_DIR = args.adapter_dir
 
 # Load base model and adapter
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, token=os.environ["HF_TOKEN"])
