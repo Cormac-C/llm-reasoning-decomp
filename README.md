@@ -18,6 +18,12 @@ export HF_TOKEN= <your token>
 export WANDB_KEY= <your token>
 ```
 
+To run training scripts and save the adapters, you will need to set the base directory where each adapter wil be saved as an environment variable
+
+```setup base_dir
+export BASE_DIR= <your local base dir>
+```
+
 If you want to run the sudoku or countdown scripts then you will need to load the sudoku and countdown datasets locally then set the local paths as environment variables
 
 ```setup data
