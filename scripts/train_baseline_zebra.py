@@ -39,7 +39,7 @@ wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
 RUN_NAME = create_run_name(args, base_name="zebra-training")
 
-BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
+BASE_DIR = os.environ["BASE_DIR"]
 
 MODEL_NAME = args.base_model
 
