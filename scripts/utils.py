@@ -47,6 +47,10 @@ def create_run_name(args, base_name=""):
         run_name += "-3B"
     else:
         run_name += args.base_model
+    
+    if args.num_samples is not None:
+        run_name += f"-{args.num_samples}samples"
+        
     return run_name
 
 
