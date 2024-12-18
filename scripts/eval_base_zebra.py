@@ -13,7 +13,7 @@ if module_path not in sys.path:
 
 from evals.zebra_eval import eval_model_zebra
 from data.utils import load_prep_zebra_dataset
-from scripts.utils import configure_device, read_int_arg
+from scripts.utils import configure_device, read_named_args, create_run_name
 
 # Load environment variables
 load_dotenv()
@@ -21,13 +21,15 @@ load_dotenv()
 # Configure device
 device = configure_device()
 
+args = read_named_args()
+
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-wandb.init(project="Decomp", name="base-zebra-3b-zero-shot")
+wandb.init(project="Decomp", name=create_run_name(args, "zebra-base-eval"))
 
-FEW_SHOT = read_int_arg(sys.argv, 1, default=None)
+FEW_SHOT = args.few_shot
 
-MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
+MODEL_NAME = args.base_model
 
 # Load base model
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, token=os.environ["HF_TOKEN"])

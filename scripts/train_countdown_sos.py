@@ -17,7 +17,7 @@ from src.train import sft_train_lora
 from src.model import identify_target_modules
 from data.countdown import Countdown
 from data.format import lm_format_qa_instance
-from scripts.utils import configure_device
+from scripts.utils import configure_device, read_named_args, create_run_name
 
 
 # Load environment variables
@@ -26,13 +26,15 @@ load_dotenv()
 # Configure device
 device = configure_device()
 
+args = read_named_args()
+
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-RUN_NAME = "sos-3b"
+RUN_NAME = create_run_name(args, base_name="countdown-training")
 
-BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
+BASE_DIR = os.environ["BASE_DIR"]
 
-MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
+MODEL_NAME = args.base_model
 
 
 def get_sft_config(run_name=None):

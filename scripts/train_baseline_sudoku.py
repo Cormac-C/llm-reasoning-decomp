@@ -1,6 +1,5 @@
 import os
 import sys
-import torch
 import wandb
 
 from peft import LoraConfig
@@ -21,7 +20,12 @@ from evals.sudoku_eval import (
     generate_compute_metrics_fn,
     preprocess_logits_for_metrics,
 )
-from scripts.utils import configure_device, clear_gpu_memory
+from scripts.utils import (
+    configure_device,
+    clear_gpu_memory,
+    read_named_args,
+    create_run_name,
+)
 
 # Load environment variables
 load_dotenv()
@@ -29,14 +33,15 @@ load_dotenv()
 # Configure device
 device = configure_device()
 
+args = read_named_args()
+
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-RUN_NAME = "sudoku-3b"
+RUN_NAME = create_run_name(args, base_name="sudoku-training")
 
-# TODO: move BASE_DIR to .env
-BASE_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/"
+BASE_DIR = os.environ["BASE_DIR"]
 
-MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
+MODEL_NAME = args.base_model
 
 
 def get_sft_config(run_name=None):
@@ -110,7 +115,7 @@ def train_sudoku_baseline(
             training_args=training_config,
             save_dir=save_dir,
             compute_metrics=generate_compute_metrics_fn(
-                tokenizer, dataset["num_clues"]
+                tokenizer, dataset["train"]["num_clues"]
             ),
             preprocess_logits_for_metrics=preprocess_logits_for_metrics,
         ),

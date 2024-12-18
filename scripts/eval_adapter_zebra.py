@@ -13,7 +13,7 @@ if module_path not in sys.path:
 
 from data.utils import load_prep_zebra_dataset
 from evals.zebra_eval import eval_model_zebra
-from scripts.utils import configure_device, read_int_arg
+from scripts.utils import configure_device, read_named_args, create_run_name
 
 
 # Load environment variables
@@ -22,15 +22,18 @@ load_dotenv()
 # Configure device
 device = configure_device()
 
+args = read_named_args(include_adapter_dir=True)
+
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-wandb.init(project="Decomp")
+wandb.init(project="Decomp", name=create_run_name(args, "zebra-adapter-eval"))
 
-FEW_SHOT = read_int_arg(sys.argv, 1, default=None)
+FEW_SHOT = args.few_shot
 
-ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/zebra-1b/llama-1b-instruct-zebra"
+MODEL_NAME = args.base_model
 
-MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
+# TODO: move adapter dir to args
+ADAPTER_DIR = args.adapter_dir
 
 
 # Load base model and adapter

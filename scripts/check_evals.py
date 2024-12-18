@@ -13,7 +13,7 @@ from data.utils import load_prep_zebra_dataset
 from evals.zebra_eval import (
     eval_model_zebra,
 )
-from scripts.utils import configure_device, read_int_arg
+from scripts.utils import configure_device, read_named_args
 
 # Load environment variables
 load_dotenv()
@@ -21,9 +21,11 @@ load_dotenv()
 # Configure device
 device = configure_device()
 
-MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
+args = read_named_args()
 
-FEW_SHOT = read_int_arg(sys.argv, 1, default=None)
+MODEL_NAME = args.base_model
+
+FEW_SHOT = args.few_shot
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 tokenizer.pad_token = tokenizer.eos_token

@@ -1,6 +1,5 @@
 import os
 import sys
-import torch
 import wandb
 
 from peft import peft_model, PeftModel
@@ -14,7 +13,7 @@ if module_path not in sys.path:
 
 from data.utils import load_prep_sudoku_dataset
 from evals.sudoku_eval import eval_model_sudoku
-from scripts.utils import configure_device, read_int_arg
+from scripts.utils import configure_device, read_named_args, create_run_name
 
 # Load environment variables
 load_dotenv()
@@ -22,15 +21,17 @@ load_dotenv()
 # Configure device
 device = configure_device()
 
+args = read_named_args(include_adapter_dir=True)
+
 wandb.login(key=os.environ["WANDB_KEY"], relogin=True, force=True)
 
-wandb.init(project="Decomp")
+wandb.init(project="Decomp", name=create_run_name(args, "sudoku-sos-eval"))
 
-FEW_SHOT = read_int_arg(sys.argv, 1, default=None)
+FEW_SHOT = args.few_shot
 
-ADAPTER_DIR = "/home/mila/x/xiaoyin.chen/scratch/projects/decomp/files/sos-3b/llama-instructsos-3b"
+MODEL_NAME = args.base_model
 
-MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
+ADAPTER_DIR = args.adapter_dir
 
 
 # Load base model and adapter
