@@ -36,6 +36,8 @@ BASE_DIR = os.environ["BASE_DIR"]
 
 MODEL_NAME = args.base_model
 
+NUM_SAMPLES = args.num_samples
+
 
 def get_sft_config(run_name=None):
     return SFTConfig(
@@ -55,7 +57,7 @@ def get_sft_config(run_name=None):
 
 
 def load_prep_countdown_sos(tokenizer, instruction_tuned=True, test_split_size=0.2):
-    dataset = Countdown(json_file=os.environ["COUNTDOWN_PATH"])
+    dataset = Countdown(json_file=os.environ["COUNTDOWN_PATH"], num_samples=NUM_SAMPLES)
 
     few_shot_example = dataset[0]
     few_shot_prompt = (
