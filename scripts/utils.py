@@ -15,6 +15,7 @@ def read_named_args(include_adapter_dir=False):
     parser = argparse.ArgumentParser()
     parser.add_argument("--few_shot", type=int, default=None)
     parser.add_argument("--base_model", type=str, default="1B")
+    parser.add_argument("--num_samples", type=int, default=1000)
     if include_adapter_dir:
         parser.add_argument("adapter_dir", type=str, default=None)
 
@@ -47,6 +48,10 @@ def create_run_name(args, base_name=""):
         run_name += "-3B"
     else:
         run_name += args.base_model
+    
+    if args.num_samples is not None:
+        run_name += f"-{args.num_samples}samples"
+        
     return run_name
 
 

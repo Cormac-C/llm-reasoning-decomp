@@ -83,7 +83,40 @@ will evaluate Llama-3.2-1B-Instruct on the zebra test set with 3 few shot exampl
 
 ## Data
 
-TODO: add details about generating countdown dataset
+ - The Zebra dataset is downloaded directly from [Huggingface](https://huggingface.co/datasets/allenai/ZebraLogicBench).
+ - The Sudoku dataset can be downloaded from [Kaggle](https://www.kaggle.com/datasets/radcliffe/3-million-sudoku-puzzles-with-ratings/data).
+
+To generate the Countdown Dataset:
+
+#### Prerequisites
+
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/kanishkg/stream-of-search.git
+   cd stream-of-search
+
+2. **Set Up the Environment**:
+- Install Miniconda (if not already installed):
+   ```bash
+   wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+   bash Miniconda3-latest-Linux-x86_64.sh
+- Create and activate a Conda environment:
+  ```bash
+  conda create -n sos python=3.11
+  conda activate sos
+- Install required packages:
+  ```bash
+  pip install -r requirements.txt
+
+3. **Generating the Countdown Dataset**:
+   - Run the Script to Generate the Dataset:
+     ```bash
+      sh scripts/gen_task.sh
+   - This will generate the Countdown dataset
+   - Save this as countdown.json in the appropriate output directory
+   - This file will contain structured examples for the Countdown problem. Each entry includes the target number, available numbers, the optimal solution path, the whole search trajectory and a rating field.
+
+
 
 ## Pre-trained adapters
 
