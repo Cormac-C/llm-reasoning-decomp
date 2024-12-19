@@ -61,16 +61,16 @@ python scripts/eval_base_zebra.py
 
 python scripts/eval_base_sudoku.py
 
-python scripts/eval_adapter_zebra.py adapter_dir=<your local path>
+python scripts/eval_adapter_zebra.py <adapter_dir>
 
-python scripts/eval_adapter_sudoku.py adapter_dir=<your local path>
+python scripts/eval_adapter_sudoku.py <adapter_dir>
 
-python scripts/eval_sos_zebra.py adapter_dir=<your local path>
+python scripts/eval_sos_zebra.py <adapter_dir>
 
-python scripts/eval_sos_sudoku.py adapter_dir=<your local path>
+python scripts/eval_sos_sudoku.py <adapter_dir>
 ```
 
-For the adapter and sos adapter scripts you are required to specify the path to the adapter which was trained using the above scripts.
+For the adapter and sos adapter scripts you are required to specify the path to the adapter which was trained using the above scripts as a positional argument.
 
 For each script you can specify the size of the base model with the flag `--base_model= <1B or 3B>` and specify the number of few-shot examples with the flag `--few_shot= <int>`. For example:
 For each eval script you can specify the number of few-shot examples as a parameter, the default is zero-shot. For example:
