@@ -32,7 +32,6 @@ FEW_SHOT = args.few_shot
 
 MODEL_NAME = args.base_model
 
-# TODO: move adapter dir to args
 ADAPTER_DIR = args.adapter_dir
 
 
